@@ -6,10 +6,7 @@ import PL.MainMenu;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +31,7 @@ public class GameWindow extends JPanel implements ActionListener{
         super();
         this.setLayout(new BoxLayout(this,BoxLayout.LINE_AXIS));
         String currPath= Paths.get(".").toAbsolutePath().normalize().toString();
+
         background=ImageIO.read(new File(currPath+"/Images/background.png"));
         ImageIcon menu = new ImageIcon(ImageIO.read(new File(currPath+"/Images/back.png")));
 
@@ -46,13 +44,13 @@ public class GameWindow extends JPanel implements ActionListener{
         left.add(Box.createVerticalGlue());
         add(left);
 
-        Box center=Box.createHorizontalBox();
-        Box right=Box.createVerticalBox();
+        Box center=Box.createVerticalBox();
+        Box right=Box.createHorizontalBox();
 
 
         this.level=l;
         _bg=new BoardGrid(l,this);
-        this.setSize(800,800);
+
         center.add(_bg);
         add(center);
         add(right);
@@ -64,8 +62,9 @@ public class GameWindow extends JPanel implements ActionListener{
         _minuts=0;
         _lblTime=new JLabel();
         _lblTime.setText(getTime());
-        right.add(_lblTime);
-        _t.start();
+        _lblTime.setFont(new Font("Candara",Font.BOLD,30));
+        //center.add(_lblTime);
+       // _t.start();
         //end timer initialization
         //undo initialization
         _undo=new JButton();
@@ -73,6 +72,7 @@ public class GameWindow extends JPanel implements ActionListener{
         _undo.setIcon(undo);
         _undo.setBackground(null);
         _undo.setBorder(null);
+        _undo.addActionListener(this);
         right.add(_undo);
 
         //undo initialization
@@ -93,19 +93,22 @@ public class GameWindow extends JPanel implements ActionListener{
                 }
             }
             _lblTime.setText(this.getTime());
-            add(_lblTime, BorderLayout.SOUTH);
+            this.repaint();
+            //add(_lblTime, BorderLayout.SOUTH);
         }
-        if(e.getSource()==_undo)
+        else if(e.getSource()==_undo)
         {
             _bg.undoMove();
+            this.repaint();
         }
-        this.revalidate();
 
-        if(e.getSource()==goToMenu){
+        else if(e.getSource()== goToMenu){
             this.setVisible(false);
-            getParent().add(new MainMenu());
+            getParent().add(new MainMenu(this));
         }
+
     }
+
 
     /**
      * gets full time string
@@ -150,7 +153,7 @@ public class GameWindow extends JPanel implements ActionListener{
         else if(h==_hours && m==_minuts && s<_seconds)
             level.set_bestTime(getTime());*/
         this.setVisible(false);
-        getParent().add(new MainMenu());
+        getParent().add(new MainMenu(this));
 
     }
 

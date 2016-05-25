@@ -136,7 +136,7 @@ public class EditWindow extends JPanel implements ActionListener {
 
         if(e.getSource()==goToMenu){
             this.setVisible(false);
-            getParent().add(new MainMenu());
+            getParent().add(new MainMenu(this));
         }
     }
     private void markSelected(JButton b) {

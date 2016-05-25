@@ -17,7 +17,7 @@ public class BoardGrid extends GameBoard {
 
     private boolean _isFinished;
     protected final Position END_POSITION;
-    private GameWindow gw;
+    public GameWindow gw;
 
     public BoardGrid(Level l,GameWindow gw) throws IOException {
         super();
@@ -76,24 +76,20 @@ public class BoardGrid extends GameBoard {
      * @param pos the new position of the button
      */
     protected void moveButton(JButton b, Position pos) {
-        Piece p= _selected.getKey();
-        GridBagConstraints c= new GridBagConstraints();
-        GridBagLayout gbl=(GridBagLayout)this.getLayout();
-        c=gbl.getConstraints(b);
-        c.gridx=pos.getX();
-        c.gridy=pos.getY();
-        Position bpos=GetButtonIndex(b);
-        buttonArr[pos.getX()][pos.getY()]=b;
-        buttonArr[bpos.getX()][bpos.getY()]=null;
-        _selected = new Pair<Piece, JButton>(p, b);
-        gbl.setConstraints(b,c);
-        this.revalidate();
-        isFinished(_selected.getKey());
-        /*if(isFinished(_selected.getKey()))
-        {
-            _isFinished=true;
-          //  ((GameWindow)SwingUtilities.getWindowAncestor(this)).finished();
-        }*/
+
+            Piece p = _selected.getKey();
+            GridBagConstraints c = new GridBagConstraints();
+            GridBagLayout gbl = (GridBagLayout) this.getLayout();
+            c = gbl.getConstraints(b);
+            c.gridx = pos.getX();
+            c.gridy = pos.getY();
+            Position bpos = GetButtonIndex(b);
+            buttonArr[pos.getX()][pos.getY()] = b;
+            buttonArr[bpos.getX()][bpos.getY()] = null;
+            _selected = new Pair<Piece, JButton>(p, b);
+            gbl.setConstraints(b, c);
+            this.revalidate();
+            isFinished(_selected.getKey());
     }
 
     /**
@@ -138,8 +134,6 @@ public class BoardGrid extends GameBoard {
         gw.finished();
 
     }
-
-
 
     /**
      * returns true if the stage has been finished

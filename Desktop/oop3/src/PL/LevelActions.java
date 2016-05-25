@@ -58,7 +58,7 @@ class LevelActions extends JPanel implements MouseListener {
     public void mouseClicked(MouseEvent e) {
         this.setVisible(false);
         if(e.getSource().equals(goToMenu))
-            getParent().add(new MainMenu());
+            getParent().add(new MainMenu(this));
 
     }
 

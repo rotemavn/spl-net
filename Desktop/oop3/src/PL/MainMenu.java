@@ -1,5 +1,7 @@
 package PL;
 
+import PL.PlayLevel.GameWindow;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -18,10 +20,12 @@ public class MainMenu extends JPanel implements MouseListener {
     private JButton option3;
 
 
-    public MainMenu() {
+    public MainMenu(Container c) {
 
         try {
-            super.removeAll();
+            if(c!=null) {
+                super.remove(c);
+            }
             String currPath= Paths.get(".").toAbsolutePath().normalize().toString();
             background= ImageIO.read(new File(currPath+"/Images/backgroundNew.png"));
 
