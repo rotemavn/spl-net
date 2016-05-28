@@ -31,7 +31,6 @@ public abstract class GameBoard extends JLayeredPane implements KeyListener,Acti
 
     public GameBoard() throws IOException {
         super();
-
         this.setLayout(new GridBagLayout());
         this.setPreferredSize(new Dimension(500,500));
 

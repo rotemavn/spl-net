@@ -12,9 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-/**
- * Created by liorbass on 17/05/2016.
- */
 public class GameWindow extends JPanel implements ActionListener{
     private javax.swing.Timer _t;
     private JLabel _lblTime;
@@ -51,7 +48,7 @@ public class GameWindow extends JPanel implements ActionListener{
         this.level=l;
         _bg=new BoardGrid(l,this);
 
-        center.add(_bg);
+
         add(center);
         add(right);
 
@@ -63,8 +60,9 @@ public class GameWindow extends JPanel implements ActionListener{
         _lblTime=new JLabel();
         _lblTime.setText(getTime());
         _lblTime.setFont(new Font("Candara",Font.BOLD,30));
-        //center.add(_lblTime);
-       // _t.start();
+        center.add(_lblTime);
+        center.add(_bg);
+         _t.start();
         //end timer initialization
         //undo initialization
         _undo=new JButton();
@@ -77,7 +75,7 @@ public class GameWindow extends JPanel implements ActionListener{
 
         //undo initialization
         this.setVisible(true);
-        this.revalidate();
+      //  this.revalidate();
     }
 
     @Override
@@ -93,8 +91,8 @@ public class GameWindow extends JPanel implements ActionListener{
                 }
             }
             _lblTime.setText(this.getTime());
-            this.repaint();
-            //add(_lblTime, BorderLayout.SOUTH);
+            //this.repaint();
+
         }
         else if(e.getSource()==_undo)
         {
@@ -104,6 +102,7 @@ public class GameWindow extends JPanel implements ActionListener{
 
         else if(e.getSource()== goToMenu){
             this.setVisible(false);
+            super.removeAll();
             getParent().add(new MainMenu(this));
         }
 
@@ -140,6 +139,7 @@ public class GameWindow extends JPanel implements ActionListener{
     public void finished()
     {
         _t.stop();
+        _t.removeActionListener(this);
         JOptionPane.showMessageDialog(this,"You Have Won!");
         /*String bestTime=this.level.get_bestTime();
         String[] t= bestTime.split("-");
@@ -153,7 +153,9 @@ public class GameWindow extends JPanel implements ActionListener{
         else if(h==_hours && m==_minuts && s<_seconds)
             level.set_bestTime(getTime());*/
         this.setVisible(false);
-        getParent().add(new MainMenu(this));
+
+        getParent().removeAll();
+
 
     }
 

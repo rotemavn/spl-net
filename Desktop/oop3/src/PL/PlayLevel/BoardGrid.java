@@ -17,7 +17,8 @@ public class BoardGrid extends GameBoard {
 
     private boolean _isFinished;
     protected final Position END_POSITION;
-    public GameWindow gw;
+    protected GameWindow gw;
+
 
     public BoardGrid(Level l,GameWindow gw) throws IOException {
         super();
@@ -132,7 +133,6 @@ public class BoardGrid extends GameBoard {
     public void endGame(){
         _isFinished = true;
         gw.finished();
-
     }
 
     /**
