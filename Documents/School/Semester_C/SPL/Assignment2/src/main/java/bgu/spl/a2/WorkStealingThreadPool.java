@@ -3,6 +3,8 @@ package bgu.spl.a2;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * represents a work stealing thread pool - to understand what this class does
@@ -15,9 +17,10 @@ import java.util.Random;
  * methods
  */
 public class WorkStealingThreadPool {
-	private ArrayList<LinkedBlockingDeque<Task>> queues;
-	private Processor[] processors;
-	private int numOfProcessors;
+	private final ArrayList<LinkedBlockingDeque<Task>> queues;
+	private final Processor[] processors;
+	private final int numOfProcessors;
+	protected StealingPossibleChecker stealingPossibleCheckerInstance;
 
     /**
      * creates a {@link WorkStealingThreadPool} which has nthreads
@@ -35,6 +38,7 @@ public class WorkStealingThreadPool {
     	numOfProcessors=nthreads;
     	processors=new Processor[nthreads];
     	queues=new ArrayList<LinkedBlockingDeque<Task>>(nthreads);
+        stealingPossibleCheckerInstance=new StealingPossibleChecker();
     	
     	for(int i=0; i<nthreads; i++){
     		queues.add(new LinkedBlockingDeque<Task>());
@@ -64,11 +68,10 @@ public class WorkStealingThreadPool {
      * The function generates a random integer between 0 and the number of processors
      * @return an integer value
      */
-    private int getRandomIndex(){
+    protected int getRandomIndex(){
     	try{
-	    	Random r=new Random();
-	    	int index=r.nextInt(numOfProcessors);
-	    	return index;
+            return ThreadLocalRandom.current().nextInt(numOfProcessors);
+
     	}
     	catch(Exception e){
     		return -1;
@@ -96,8 +99,9 @@ public class WorkStealingThreadPool {
      * start the threads belongs to this thread pool
      */
     public void start() {
-        for(int i=0; i<processors.length; i++){
-        	processors[i].run();
+        for (Processor p:processors
+             ) {
+            p.run();
         }
     }
     
@@ -106,8 +110,16 @@ public class WorkStealingThreadPool {
      * @param id - the ID of the specific processor
      * @param task - the task to add
      */
-    protected void submitToProcessor(int id, Task<?> task){
-    	queues.get(id).addFirst(task);
+     void submitToProcessor(int id, Task<?> task){
+        if(id>=numOfProcessors)
+            throw new IndexOutOfBoundsException("The ID provided exeeded the number of availible processord");
+        else
+
+
+        try{
+            queues.get(id).addFirst(task);
+        }
+        catch (IndexOutOfBoundsException e){}
     }
     
     /**
@@ -115,8 +127,17 @@ public class WorkStealingThreadPool {
      * @param id the ID of a specific processor
      * @return the task at the head of the queue of the processor
      */
-    protected Task<?> fetchTask(int id){
-    	return queues.get(id).pollFirst();
+     Task<?> fetchTask(int id){
+    	try {
+            return queues.get(id).pollFirst();
+        }
+        catch (Exception e){
+    	    if(queues.get(id).isEmpty())
+    	        System.out.println("Processor with ID "+id+" is empty");
+    	    else
+                System.out.println("Processor with ID "+id+" does not exist in the pool");
+        }
+        return null;
     }
     
     /**
@@ -124,8 +145,86 @@ public class WorkStealingThreadPool {
      * @param id - of the processor
      * @return true if the queue is empty
      */
-    protected boolean isQueueEmpty(int id){
+     boolean isQueueEmpty(int id){
     	return queues.get(id).isEmpty();
     }
+
+     void steal(int thiefID){
+        int victimID=getVictimsQueueID(thiefID);
+        int half=queues.get(victimID).size()/2;
+        while (half>0){
+
+        }
+    }
+
+    /**
+     * The function searches the next non-empty queue to be the origin to steal from
+     * @param thiefID the processor ID who is trying to steal
+     * @return the non empty queue we can steal from
+     */
+     int getVictimsQueueID(int thiefID){
+        final AtomicInteger victimID=new AtomicInteger(thiefID+1);
+        try {
+            while (queues.get(victimID.get()).isEmpty() || victimID.get() == thiefID) {
+                if (victimID.get() == thiefID)
+                    wait();
+                victimID.set(victimID.incrementAndGet() % numOfProcessors);
+            }
+        }
+        catch (InterruptedException e){
+
+        }
+        return victimID.get();
+
+    }
+
+    //TODO: Delete these getters: for testing only
+    public ArrayList<LinkedBlockingDeque<Task>> getQueues(){
+        return queues;
+    }
+
+    public Processor[] getProcessors(){return processors;}
+    public int getNumOfProcessors(){return numOfProcessors;}
+
+    /**
+     * Inner Class for checking if it is possible for a processor to steal tasks - It won't be possible if there are no
+     * tasks at all on all the queues
+     */
+    private class StealingPossibleChecker{
+        private int numberOfTotalTasks;
+
+         StealingPossibleChecker(){
+            numberOfTotalTasks=0;
+            for (LinkedBlockingDeque<Task> q:queues) {
+                numberOfTotalTasks+=q.size();
+            }
+        }
+
+        /**
+         * The method is called when a task is being inserted or removed from one of the queues
+         */
+        public synchronized void change(){
+            numberOfTotalTasks=0;
+            for (LinkedBlockingDeque<Task> q:queues) {
+                numberOfTotalTasks+=q.size();
+            }
+            //if the number of task is positive then a thread wishing to steal will be able to do so
+            if(numberOfTotalTasks>0)
+                notifyAll();
+        }
+
+        public synchronized void returnWhenStealIsPossible(){
+            while(numberOfTotalTasks==0){
+                try{
+                    wait();
+                }
+                catch (InterruptedException e){}
+            }
+        }
+
+
+    }
+
+
 
 }

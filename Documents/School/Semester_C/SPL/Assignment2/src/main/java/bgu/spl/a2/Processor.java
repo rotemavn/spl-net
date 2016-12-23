@@ -1,5 +1,4 @@
 package bgu.spl.a2;
-
 /**
  * this class represents a single work stealing processor, it is
  * {@link Runnable} so it is suitable to be executed by threads.
@@ -15,7 +14,6 @@ public class Processor implements Runnable {
 
     private final WorkStealingThreadPool pool;
     private final int id;
-
     /**
      * constructor for this class
      *
@@ -40,9 +38,11 @@ public class Processor implements Runnable {
 
     @Override
     public void run() {
+        Task temp;
     	while(!pool.isQueueEmpty(id))
     		pool.fetchTask(id).start();
     	steal();
+
     }
     
     /**
@@ -50,14 +50,17 @@ public class Processor implements Runnable {
      * @param task a task to add to the head of the queue
      */
     protected void scheduleTask(Task<?>... task){
-    	for(int i=0; i<task.length; i++){
-    		pool.submitToProcessor(id, task[i]);
-    	}
-    	//rotem
+        for (Task t:task) {
+            pool.submitToProcessor(id, t);
+        }
+
     }
     
-    protected void steal(){
-    	
+    private void steal(){
+    	pool.steal(id);
     }
+
+
+
 
 }
