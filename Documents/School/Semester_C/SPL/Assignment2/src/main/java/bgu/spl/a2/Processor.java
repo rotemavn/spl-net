@@ -53,6 +53,7 @@ public class Processor implements Runnable {
     	for(int i=0; i<task.length; i++){
     		pool.submitToProcessor(id, task[i]);
     	}
+    	//rotem
     }
     
     protected void steal(){
