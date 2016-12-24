@@ -46,6 +46,10 @@ public class Processor implements Runnable {
     	steal();
 
     }
+
+    private void startTask(){
+
+    }
     
     /**
      * The function adds a task to this processor's tasks queue
@@ -60,6 +64,18 @@ public class Processor implements Runnable {
     
     private void steal(){
     	pool.steal(id);
+    }
+
+    protected void suspend(Task<?> task){
+        if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){
+            Task t=pool.fetchTask(id);
+            pool.submitToProcessor(id,task);
+            t.start();
+        }
+        else {
+            pool.submitToProcessor(id,task);
+            steal();
+        }
     }
 
 
