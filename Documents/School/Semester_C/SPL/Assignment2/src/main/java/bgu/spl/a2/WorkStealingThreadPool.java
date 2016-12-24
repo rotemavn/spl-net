@@ -17,9 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class WorkStealingThreadPool {
 	private final ArrayList<LinkedBlockingDeque<Task>> queues;
-	private final Processor[] processors;
+	private final Thread[] processors;
 	private final int numOfProcessors;
-	private VersionMonitor versionMonitor;
+	private final VersionMonitor versionMonitor;
+	private final boolean[] isAlive;
 
     /**
      * creates a {@link WorkStealingThreadPool} which has nthreads
@@ -35,13 +36,15 @@ public class WorkStealingThreadPool {
      */
     public WorkStealingThreadPool(int nthreads) {
     	numOfProcessors=nthreads;
-    	processors=new Processor[nthreads];
+    	processors=new Thread[nthreads];
     	queues=new ArrayList<LinkedBlockingDeque<Task>>(nthreads);
         versionMonitor=new VersionMonitor();
+        isAlive=new boolean[numOfProcessors];
     	
     	for(int i=0; i<nthreads; i++){
     		queues.add(new LinkedBlockingDeque<Task>());
-    		processors[i]=new Processor(i, this);
+    		processors[i]=new Thread(new Processor(i, this));
+    		isAlive[i]=true;
     	}
     }
 
@@ -91,16 +94,20 @@ public class WorkStealingThreadPool {
      * shutdown the queue is itself a processor of this queue
      */
     public void shutdown() throws InterruptedException {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
+        for (Thread t:processors) {
+            t.interrupt();
+            t.join();
+
+        }
+
     }
 
     /**
      * start the threads belongs to this thread pool
      */
     public void start() {
-        for (Processor p:processors
-             ) {
+        for (Thread p:processors) {
+            System.out.println("Thread "+ p.toString()+" RUN"); //TODO
             p.run();
         }
     }
@@ -201,9 +208,6 @@ public class WorkStealingThreadPool {
         return queues;
     }
 
-    public Processor[] getProcessors(){return processors;}
+    public Thread[] getProcessors(){return processors;}
     public int getNumOfProcessors(){return numOfProcessors;}
-
-
-
 }

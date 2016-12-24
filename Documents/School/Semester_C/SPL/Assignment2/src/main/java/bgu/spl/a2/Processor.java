@@ -14,6 +14,7 @@ public class Processor implements Runnable {
 
     private final WorkStealingThreadPool pool;
     private final int id;
+
     /**
      * constructor for this class
      *
@@ -38,9 +39,10 @@ public class Processor implements Runnable {
 
     @Override
     public void run() {
-        Task temp;
-    	while(!pool.isQueueEmpty(id))
-    		pool.fetchTask(id).start();
+        System.out.println("Processor entered run method"); //TODO
+    	while(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()) {
+            pool.fetchTask(id).start();
+        }
     	steal();
 
     }
