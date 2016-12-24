@@ -1,6 +1,8 @@
 package bgu.spl.a2;
 
 import java.util.Collection;
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * an abstract class that represents a task that may be executed using the
@@ -11,80 +13,119 @@ import java.util.Collection;
  * synchronization is needed. In addition, the methods you add to this class can
  * only be private!!!
  *
- * @param <R> the task result type
+ * @param <R>
+ *            the task result type
  */
 public abstract class Task<R> {
 
-    /**
-     * start handling the task - note that this method is protected, a handler
-     * cannot call it directly but instead must use the
-     * {@link #handle(bgu.spl.a2.Processor)} method
-     */
-    protected abstract void start();
+	private Processor handler;
+	private Deferred<R> deferred;
+	
+	private boolean started;
+	private Vector<Task<?>> tasks = new Vector<>(); // vector containing all the tasks which the current task is waiting for completion
+	private Runnable callback; // once all the derived tasks are resolved we will activate the run method of the pro
+	private AtomicInteger tasksLeft; // integer made in oreder to count the number of derived tasks which current tasks depends on
+	
+	/**
+	 * start handling the task - note that this method is protected, a handler
+	 * cannot call it directly but instead must use the
+	 * {@link #handle(bgu.spl.a2.Processor)} method
+	 */
+	protected abstract void start();
 
-    /**
-     *
-     * start/continue handling the task
-     *
-     * this method should be called by a processor in order to start this task
-     * or continue its execution in the case where it has been already started,
-     * any sub-tasks / child-tasks of this task should be submitted to the queue
-     * of the handler that handles it currently
-     *
-     * IMPORTANT: this method is package protected, i.e., only classes inside
-     * the same package can access it - you should *not* change it to
-     * public/private/protected
-     *
-     * @param handler the handler that wants to handle the task
-     */
-    /*package*/ final void handle(Processor handler) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 *
+	 * start/continue handling the task
+	 *
+	 * this method should be called by a processor in order to start this task
+	 * or continue its execution in the case where it has been already started,
+	 * any sub-tasks / child-tasks of this task should be submitted to the queue
+	 * of the handler that handles it currently
+	 *
+	 * IMPORTANT: this method is package protected, i.e., only classes inside
+	 * the same package can access it - you should *not* change it to
+	 * public/private/protected
+	 *
+	 * @param handler
+	 *            the handler that wants to handle the task
+	 */
+	/* package */ final void handle(Processor handler) {
+		this.handler = handler;
+		deferred = new Deferred<R>();
+		if (!started) {
+			start();
+			started = true;
+		}
+		else{
+			if(tasksLeft.get()>0){ //while the currents tasks still have tasks which it depends on
+				for(int i=0;i<tasks.size();i++){
+					if(tasks.get(i).getResult().isResolved()){
+						tasks.remove(i);
+						tasksLeft.decrementAndGet();
+					}
+					else{ //if there is still tasks needed to be complete
+						handler.scheduleTask(this);
+						break;
+					}
+				}
+			}
+			else{ //all the tasks the current task needed to be resolved are indeed resolved
+				callback.run();
+			}
+			
+		}
 
-    /**
-     * This method schedules a new task (a child of the current task) to the
-     * same processor which currently handles this task.
-     *
-     * @param task the task to execute
-     */
-    protected final void spawn(Task<?>... task) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	}
 
-    /**
-     * add a callback to be executed once *all* the given tasks results are
-     * resolved
-     *
-     * Implementors note: make sure that the callback is running only once when
-     * all the given tasks completed.
-     *
-     * @param tasks
-     * @param callback the callback to execute once all the results are resolved
-     */
-    protected final void whenResolved(Collection<? extends Task<?>> tasks, Runnable callback) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 * This method schedules a new task (a child of the current task) to the
+	 * same processor which currently handles this task.
+	 *
+	 * @param task
+	 *            the task to execute
+	 */
+	protected final void spawn(Task<?>... task) {
+		handler.scheduleTask(task);
+	}
 
-    /**
-     * resolve the internal result - should be called by the task derivative
-     * once it is done.
-     *
-     * @param result - the task calculated result
-     */
-    protected final void complete(R result) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 * add a callback to be executed once *all* the given tasks results are
+	 * resolved
+	 *
+	 * Implementors note: make sure that the callback is running only once when
+	 * all the given tasks completed.
+	 *
+	 * @param tasks
+	 * @param callback
+	 *            the callback to execute once all the results are resolved
+	 */
+	protected final void whenResolved(Collection<? extends Task<?>> tasks, Runnable callback) {
+		tasksLeft.set(tasks.size());
+		for (Task<?> t: tasks){
+		t.getResult().addCallback(callback);
+		}
+//		for (Task<?> t: tasks){
+//			this.tasks.add(t);
+//		}
+//		this.callback = callback;
+	}
 
-    /**
-     * @return this task deferred result
-     */
-    public final Deferred<R> getResult() {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 * resolve the internal result - should be called by the task derivative
+	 * once it is done.
+	 *
+	 * @param result
+	 *            - the task calculated result
+	 */
+	protected final void complete(R result) {
+		deferred.resolve(result);
+	}
+
+	/**
+	 * @return this task deferred result
+	 */
+	public final Deferred<R> getResult() {
+		return deferred;
+	}
 
 }

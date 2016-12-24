@@ -14,77 +14,100 @@ import java.util.Vector;
  * private, protected or package protected - in other words, no new public
  * methods
  *
- * @param <T> the result type
+ * @param <T>
+ *            the result type
  */
 public class Deferred<T> {
-	protected Vector<Runnable> callbacks;
 	
-	protected void addCallback(Runnable r){
+	protected Vector<Runnable> callbacks;
+
+	private T val;
+	private boolean resolved;
+
+	protected void addCallback(Runnable r) {
 		callbacks.add(r);
 	}
-	
-	protected Vector<Runnable> getCallbacks(){		
+
+	protected Vector<Runnable> getCallbacks() {
 		return new Vector<Runnable>(callbacks);
 	}
-	
-	protected int getNumberOFCallbacks(){
+
+	protected int getNumberOFCallbacks() {
 		return callbacks.size();
 	}
-    /**
-     *
-     * @return the resolved value if such exists (i.e., if this object has been
-     * {@link #resolve(java.lang.Object)}ed yet
-     * @throws IllegalStateException in the case where this method is called and
-     * this object is not yet resolved
-     */
-    public T get() {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
 
-    /**
-     *
-     * @return true if this object has been resolved - i.e., if the method
-     * {@link #resolve(java.lang.Object)} has been called on this object before.
-     */
-    public boolean isResolved() {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 *
+	 * @return the resolved value if such exists (i.e., if this object has been
+	 *         {@link #resolve(java.lang.Object)}ed yet
+	 * @throws IllegalStateException
+	 *             in the case where this method is called and this object is
+	 *             not yet resolved
+	 */
+	public T get() {
+		if(resolved){
+			return val;
+		}
+		else{
+			throw new IllegalStateException("Not Yet Resolved.");	
+		}
+	}
 
-    /**
-     * resolve this deferred object - from now on, any call to the method
-     * {@link #get()} should return the given value
-     *
-     * Any callbacks that were registered to be notified when this object is
-     * resolved via the {@link #whenResolved(java.lang.Runnable)} method should
-     * be executed before this method returns
-     *
-     * @param value - the value to resolve this deferred object with
-     * @throws IllegalStateException in the case where this object is already
-     * resolved
-     */
-    public void resolve(T value) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 *
+	 * @return true if this object has been resolved - i.e., if the method
+	 *         {@link #resolve(java.lang.Object)} has been called on this object
+	 *         before.
+	 */
+	public boolean isResolved() {
+		return resolved;
+	}
 
-    /**
-     * add a callback to be called when this object is resolved. if while
-     * calling this method the object is already resolved - the callback should
-     * be called immediately
-     *
-     * Note that in any case, the given callback should never get called more
-     * than once, in addition, in order to avoid memory leaks - once the
-     * callback got called, this object should not hold its reference any
-     * longer.
-     *
-     * @param callback the callback to be called when the deferred object is
-     * resolved
-     */
-    public void whenResolved(Runnable callback) {
-        //TODO: replace method body with real implementation
-        throw new UnsupportedOperationException("Not Implemented Yet.");
-    }
+	/**
+	 * resolve this deferred object - from now on, any call to the method
+	 * {@link #get()} should return the given value
+	 *
+	 * Any callbacks that were registered to be notified when this object is
+	 * resolved via the {@link #whenResolved(java.lang.Runnable)} method should
+	 * be executed before this method returns
+	 *
+	 * @param value
+	 *            - the value to resolve this deferred object with
+	 * @throws IllegalStateException
+	 *             in the case where this object is already resolved
+	 */
+	public void resolve(T value) {
+		if (!resolved) {
+			resolved = true;
+			val = value;
+			callbacks.notifyAll();
+			for(int i=getNumberOFCallbacks()-1;i>=0;i--){
+				callbacks.remove(i);
+			}
+		}
+		else{
+			throw new IllegalStateException("Object was already resolved!");
+		}
+	}
+
+	/**
+	 * add a callback to be called when this object is resolved. if while
+	 * calling this method the object is already resolved - the callback should
+	 * be called immediately
+	 *
+	 * Note that in any case, the given callback should never get called more
+	 * than once, in addition, in order to avoid memory leaks - once the
+	 * callback got called, this object should not hold its reference any
+	 * longer.
+	 *
+	 * @param callback
+	 *            the callback to be called when the deferred object is resolved
+	 */
+	public synchronized void whenResolved(Runnable callback) {
+		if (!resolved)
+			callbacks.add(callback);
+		else
+			callback.notify();
+	}
 
 }

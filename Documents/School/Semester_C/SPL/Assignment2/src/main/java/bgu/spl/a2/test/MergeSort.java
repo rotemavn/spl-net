@@ -9,21 +9,49 @@ import bgu.spl.a2.Task;
 import bgu.spl.a2.WorkStealingThreadPool;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
 public class MergeSort extends Task<int[]> {
 
-    private final int[] array;
+	private final int[] array;
+	private Vector<Task<int[]>> tasks;
 
     public MergeSort(int[] array) {
+    	tasks = new Vector<Task<int[]>>();
         this.array = array;
     }
 
     @Override
-    protected void start() {
-        //TODO: replace method body with real implementation
-        int x=3+5;
-    }
+	protected void start() {
+		if (array.length > 1) {
+			int mid = array.length / 2;
+			int leftSize = mid;
+			int rightSize = array.length - mid;
+			int[] left = new int[leftSize];
+			int[] right = new int[rightSize];
+			for (int i = 0; i < mid; i++) {
+				left[i] = array[i];
+			}
+			for (int i = mid; i < array.length; i++) {
+				right[i - mid] = array[i];
+			}
+			Task<int[]> leftSort = new MergeSort(left);
+			Task<int[]> rightSort = new MergeSort(left);
+			spawn(leftSort);
+			spawn(rightSort);
+			tasks.add(leftSort);
+			tasks.add(rightSort);
+		}
+		else{
+			complete(array);
+		}
+		whenResolved(tasks,()->{
+			int[] ans = new int[array.length];
+			merge(tasks.get(0).getResult().get(),tasks.get(1).getResult().get(),ans);
+			complete(ans);
+		});
+	}
     
     
     public static void mergeSort(int[] inputArray) {
@@ -79,6 +107,16 @@ public class MergeSort extends Task<int[]> {
     
 
     public static void main(String[] args) throws InterruptedException {
+    	
+        WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
+        int [] a=new int[]{4,5,6};
+        MergeSort mergeSort1=new MergeSort(a);
+        pool.start();
+        pool.submit(mergeSort1);
+        
+        pool.shutdown();
+        
+    	
 //        WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
 //        int n = 1000000; //you may check on different number of elements if you like
 //        int[] array = new Random().ints(n).toArray();
@@ -97,6 +135,7 @@ public class MergeSort extends Task<int[]> {
 //        l.await();
 //        pool.shutdown();
 
+    	/**
         WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
         int [] a=new int[]{4,5,6};
         MergeSort mergeSort1=new MergeSort(a);
@@ -110,6 +149,7 @@ public class MergeSort extends Task<int[]> {
         pool.submit(mergeSort4);
 
         pool.shutdown();
+        **/
     }
 
 }
