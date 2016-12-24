@@ -2,7 +2,6 @@ package bgu.spl.a2;
 
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,7 +19,7 @@ public class WorkStealingThreadPool {
 	private final ArrayList<LinkedBlockingDeque<Task>> queues;
 	private final Processor[] processors;
 	private final int numOfProcessors;
-	protected StealingPossibleChecker stealingPossibleCheckerInstance;
+	private VersionMonitor versionMonitor;
 
     /**
      * creates a {@link WorkStealingThreadPool} which has nthreads
@@ -38,7 +37,7 @@ public class WorkStealingThreadPool {
     	numOfProcessors=nthreads;
     	processors=new Processor[nthreads];
     	queues=new ArrayList<LinkedBlockingDeque<Task>>(nthreads);
-        stealingPossibleCheckerInstance=new StealingPossibleChecker();
+        versionMonitor=new VersionMonitor();
     	
     	for(int i=0; i<nthreads; i++){
     		queues.add(new LinkedBlockingDeque<Task>());
@@ -56,6 +55,7 @@ public class WorkStealingThreadPool {
        if(processorIndex>-1)
        {
     	   queues.get(processorIndex).addFirst(task);
+           versionMonitor.inc();
        }
        
        else
@@ -118,6 +118,7 @@ public class WorkStealingThreadPool {
 
         try{
             queues.get(id).addFirst(task);
+            versionMonitor.inc();
         }
         catch (IndexOutOfBoundsException e){}
     }
@@ -129,6 +130,7 @@ public class WorkStealingThreadPool {
      */
      Task<?> fetchTask(int id){
     	try {
+            versionMonitor.inc();
             return queues.get(id).pollFirst();
         }
         catch (Exception e){
@@ -151,9 +153,23 @@ public class WorkStealingThreadPool {
 
      void steal(int thiefID){
         int victimID=getVictimsQueueID(thiefID);
-        int half=queues.get(victimID).size()/2;
-        while (half>0){
-            //TODO:
+        AtomicInteger half=new AtomicInteger(queues.get(victimID).size()/2);
+        AtomicInteger tasksStolenCounter=new AtomicInteger(0);
+
+        while (half.get()>0 && queues.get(victimID).size()>0){
+            queues.get(thiefID).addFirst(queues.get(victimID).pollLast());
+            tasksStolenCounter.getAndIncrement();
+            half.getAndDecrement();
+
+        }
+        //if the thief could'nt steal any task
+        if(tasksStolenCounter.get()==0){
+
+            try {
+                int version=versionMonitor.getVersion();
+                versionMonitor.await(version);
+            }
+            catch (InterruptedException ignore){}
         }
     }
 
@@ -166,8 +182,10 @@ public class WorkStealingThreadPool {
         final AtomicInteger victimID=new AtomicInteger(thiefID+1);
         try {
             while (queues.get(victimID.get()).isEmpty() || victimID.get() == thiefID) {
-                if (victimID.get() == thiefID)
-                    wait();
+                if (victimID.get() == thiefID) {
+                    int version=versionMonitor.getVersion();
+                    versionMonitor.await(version);
+                }
                 victimID.set(victimID.incrementAndGet() % numOfProcessors);
             }
         }
@@ -185,45 +203,6 @@ public class WorkStealingThreadPool {
 
     public Processor[] getProcessors(){return processors;}
     public int getNumOfProcessors(){return numOfProcessors;}
-
-    /**
-     * Inner Class for checking if it is possible for a processor to steal tasks - It won't be possible if there are no
-     * tasks at all on all the queues
-     */
-    private class StealingPossibleChecker{
-        private int numberOfTotalTasks;
-
-         StealingPossibleChecker(){
-            numberOfTotalTasks=0;
-            for (LinkedBlockingDeque<Task> q:queues) {
-                numberOfTotalTasks+=q.size();
-            }
-        }
-
-        /**
-         * The method is called when a task is being inserted or removed from one of the queues
-         */
-        public synchronized void change(){
-            numberOfTotalTasks=0;
-            for (LinkedBlockingDeque<Task> q:queues) {
-                numberOfTotalTasks+=q.size();
-            }
-            //if the number of task is positive then a thread wishing to steal will be able to do so
-            if(numberOfTotalTasks>0)
-                notifyAll();
-        }
-
-        public synchronized void returnWhenStealIsPossible(){
-            while(numberOfTotalTasks==0){
-                try{
-                    wait();
-                }
-                catch (InterruptedException e){}
-            }
-        }
-
-
-    }
 
 
 
