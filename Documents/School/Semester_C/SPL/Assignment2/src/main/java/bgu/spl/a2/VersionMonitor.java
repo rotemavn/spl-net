@@ -38,5 +38,7 @@ public class VersionMonitor {
             }
             catch (InterruptedException e){}
         }
+
+        throw new InterruptedException();
     }
 }
