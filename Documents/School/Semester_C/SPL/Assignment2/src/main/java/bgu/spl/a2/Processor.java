@@ -39,12 +39,13 @@ public class Processor implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Processor entered run method"); //TODO
-    	while(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()) {
-            pool.fetchTask(id).start();
-        }
-    	steal();
-
+    	while( !Thread.currentThread().isInterrupted()){
+            System.out.println("Processor entered run method"); //TODO
+        	while(!pool.isQueueEmpty(id)) {
+                pool.fetchTask(id).handle(this);
+            }
+        	steal();
+    	}
     }
 
     private void startTask(){
@@ -70,7 +71,7 @@ public class Processor implements Runnable {
         if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){
             Task t=pool.fetchTask(id);
             pool.submitToProcessor(id,task);
-            t.start();
+            t.handle(this);
         }
         else {
             pool.submitToProcessor(id,task);

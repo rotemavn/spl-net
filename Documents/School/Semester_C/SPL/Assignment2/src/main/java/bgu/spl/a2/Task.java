@@ -19,13 +19,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class Task<R> {
 
 	private Processor handler;
-	private Deferred<R> deferred;
-	
+	private Deferred<R> deferred = new Deferred<R>();
+
 	private boolean started;
-	private Vector<Task<?>> tasks = new Vector<>(); // vector containing all the tasks which the current task is waiting for completion
-	private Runnable callback; // once all the derived tasks are resolved we will activate the run method of the pro
-	private AtomicInteger tasksLeft; // integer made in oreder to count the number of derived tasks which current tasks depends on
-	
+	private Vector<Task<?>> tasks = new Vector<>(); // vector containing all the
+													// tasks which the current
+													// task is waiting for
+													// completion
+	private Runnable callback; // once all the derived tasks are resolved we
+								// will activate the run method of the pro
+	private AtomicInteger tasksLeft = new AtomicInteger(0); // integer made in
+															// oreder to count
+															// the number of
+															// derived tasks
+															// which current
+															// tasks depends on
+
 	/**
 	 * start handling the task - note that this method is protected, a handler
 	 * cannot call it directly but instead must use the
@@ -51,28 +60,25 @@ public abstract class Task<R> {
 	 */
 	/* package */ final void handle(Processor handler) {
 		this.handler = handler;
-		deferred = new Deferred<R>();
 		if (!started) {
 			start();
 			started = true;
 		}
-		else{
-			if(tasksLeft.get()>0){ //while the currents tasks still have tasks which it depends on
-				for(int i=0;i<tasks.size();i++){
-					if(tasks.get(i).getResult().isResolved()){
-						tasks.remove(i);
-						tasksLeft.decrementAndGet();
-					}
-					else{ //if there is still tasks needed to be complete
-						handler.scheduleTask(this);
-						break;
-					}
+
+		if (tasksLeft.get() > 0) { // while the currents tasks still have tasks
+									// which it depends on
+			for (int i = 0; i < tasks.size(); i++) {
+				if (tasks.get(i).getResult().isResolved()) {
+					tasks.remove(i);
+					tasksLeft.decrementAndGet();
+				} else { // if there is still tasks needed to be complete
+					handler.suspend(this);
+					break;
 				}
 			}
-			else{ //all the tasks the current task needed to be resolved are indeed resolved
-				callback.run();
-			}
-			
+		} else { // all the tasks the current task needed to be resolved are
+					// indeed resolved
+			callback.run();
 		}
 
 	}
@@ -101,13 +107,11 @@ public abstract class Task<R> {
 	 */
 	protected final void whenResolved(Collection<? extends Task<?>> tasks, Runnable callback) {
 		tasksLeft.set(tasks.size());
-		for (Task<?> t: tasks){
-		t.getResult().addCallback(callback);
+		for (Task<?> t : tasks) {
+			this.tasks.add(t);
+			// t.getResult().addCallback(callback);
 		}
-//		for (Task<?> t: tasks){
-//			this.tasks.add(t);
-//		}
-//		this.callback = callback;
+		this.callback = callback;
 	}
 
 	/**
@@ -119,6 +123,7 @@ public abstract class Task<R> {
 	 */
 	protected final void complete(R result) {
 		deferred.resolve(result);
+		callback.run();
 	}
 
 	/**

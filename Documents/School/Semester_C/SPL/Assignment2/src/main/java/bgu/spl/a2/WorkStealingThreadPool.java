@@ -57,7 +57,7 @@ public class WorkStealingThreadPool {
        int processorIndex=getRandomIndex();
        if(processorIndex>-1)
        {
-    	   queues.get(processorIndex).addFirst(task);
+    	   queues.get(0).addFirst(task);
            versionMonitor.inc();
        }
        
@@ -108,7 +108,7 @@ public class WorkStealingThreadPool {
     public void start() {
         for (Thread p:processors) {
             System.out.println("Thread "+ p.toString()+" RUN"); //TODO
-            p.run();
+            p.start();
         }
     }
     
@@ -155,6 +155,7 @@ public class WorkStealingThreadPool {
      * @return true if the queue is empty
      */
      boolean isQueueEmpty(int id){
+    	System.out.println( queues.get(id).isEmpty());
     	return queues.get(id).isEmpty();
     }
 
@@ -171,7 +172,6 @@ public class WorkStealingThreadPool {
         }
         //if the thief could'nt steal any task
         if(tasksStolenCounter.get()==0){
-
             try {
                 int version=versionMonitor.getVersion();
                 versionMonitor.await(version);

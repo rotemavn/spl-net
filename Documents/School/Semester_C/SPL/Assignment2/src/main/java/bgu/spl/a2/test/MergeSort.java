@@ -5,24 +5,23 @@
  */
 package bgu.spl.a2.test;
 
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import bgu.spl.a2.Task;
 import bgu.spl.a2.WorkStealingThreadPool;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Vector;
-import java.util.concurrent.CountDownLatch;
 
 public class MergeSort extends Task<int[]> {
 
 	private final int[] array;
 	private Vector<Task<int[]>> tasks;
 
-    public MergeSort(int[] array) {
-    	tasks = new Vector<Task<int[]>>();
-        this.array = array;
-    }
+	public MergeSort(int[] array) {
+		tasks = new Vector<Task<int[]>>();
+		this.array = array;
+	}
 
-    @Override
+	@Override
 	protected void start() {
 		if (array.length > 1) {
 			int mid = array.length / 2;
@@ -47,109 +46,94 @@ public class MergeSort extends Task<int[]> {
 			complete(array);
 		}
 		whenResolved(tasks,()->{
+			if(array.length>1){
 			int[] ans = new int[array.length];
 			merge(tasks.get(0).getResult().get(),tasks.get(1).getResult().get(),ans);
 			complete(ans);
+			}
+			else{
+				
+			}
 		});
 	}
-    
-    
-    public static void mergeSort(int[] inputArray) {
-        int size = inputArray.length;
-        if (size < 2)
-            return;
-        int mid = size / 2;
-        int leftSize = mid;
-        int rightSize = size - mid;
-        int[] left = new int[leftSize];
-        int[] right = new int[rightSize];
-        for (int i = 0; i < mid; i++) {
-            left[i] = inputArray[i];
 
-        }
-        for (int i = mid; i < size; i++) {
-            right[i - mid] = inputArray[i];
-        }
-        mergeSort(left);
-        mergeSort(right);
-        merge(left, right, inputArray);
-    }
+//	public static void mergeSort(int[] inputArray) {
+//		int size = inputArray.length;
+//		if (size < 2)
+//			return;
+//		int mid = size / 2;
+//		int leftSize = mid;
+//		int rightSize = size - mid;
+//		int[] left = new int[leftSize];
+//		int[] right = new int[rightSize];
+//		for (int i = 0; i < mid; i++) {
+//			left[i] = inputArray[i];
+//
+//		}
+//		for (int i = mid; i < size; i++) {
+//			right[i - mid] = inputArray[i];
+//		}
+//		mergeSort(left);
+//		mergeSort(right);
+//		merge(left, right, inputArray);
+//	}
 
-    public static void merge(int[] left, int[] right, int[] arr) {
-        int leftSize = left.length;
-        int rightSize = right.length;
-        int i = 0, j = 0, k = 0;
-        while (i < leftSize && j < rightSize) {
-            if (left[i] <= right[j]) {
-                arr[k] = left[i];
-                i++;
-                k++;
-            } else {
-                arr[k] = right[j];
-                k++;
-                j++;
-            }
-        }
-        while (i < leftSize) {
-            arr[k] = left[i];
-            k++;
-            i++;
-        }
-        while (j < leftSize) {
-            arr[k] = right[j];
-            k++;
-            j++;
-        }
-    }
-    
-    
-    
-    
+	public static void merge(int[] left, int[] right, int[] arr) {
+		int leftSize = left.length;
+		int rightSize = right.length;
+		int i = 0, j = 0, k = 0;
+		while (i < leftSize && j < rightSize) {
+			if (left[i] <= right[j]) {
+				arr[k] = left[i];
+				i++;
+				k++;
+			} else {
+				arr[k] = right[j];
+				k++;
+				j++;
+			}
+		}
+		while (i < leftSize) {
+			arr[k] = left[i];
+			k++;
+			i++;
+		}
+		while (j < leftSize) {
+			arr[k] = right[j];
+			k++;
+			j++;
+		}
+	}
 
-    public static void main(String[] args) throws InterruptedException {
-    	
-        WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
-        int [] a=new int[]{4,5,6};
+	public static void main(String[] args) throws InterruptedException {
+		
+        WorkStealingThreadPool pool = new WorkStealingThreadPool(1);
+        int [] a = {9,59,12,1};
         MergeSort mergeSort1=new MergeSort(a);
-        pool.start();
         pool.submit(mergeSort1);
+        pool.start();
+        
         
         pool.shutdown();
         
-    	
-//        WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
-//        int n = 1000000; //you may check on different number of elements if you like
-//        int[] array = new Random().ints(n).toArray();
-//
-//        MergeSort task = new MergeSort(array);
-//
-//        CountDownLatch l = new CountDownLatch(1);
-//        pool.start();
-//        pool.submit(task);
-//        task.getResult().whenResolved(() -> {
-//            //warning - a large print!! - you can remove this line if you wish
-//            System.out.println(Arrays.toString(task.getResult().get()));
-//            l.countDown();
-//        });
-//
-//        l.await();
-//        pool.shutdown();
-
-    	/**
-        WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
-        int [] a=new int[]{4,5,6};
-        MergeSort mergeSort1=new MergeSort(a);
-        MergeSort mergeSort2=new MergeSort(a);
-        MergeSort mergeSort3=new MergeSort(a);
-        MergeSort mergeSort4=new MergeSort(a);
-        pool.submit(mergeSort1);
-        pool.submit(mergeSort2);
-        pool.start();
-        pool.submit(mergeSort3);
-        pool.submit(mergeSort4);
-
-        pool.shutdown();
-        **/
-    }
+		// WorkStealingThreadPool pool = new WorkStealingThreadPool(4);
+		// int n = 1000000; //you may check on different number of elements if
+		// you like
+		// int[] array = new Random().ints(n).toArray();
+		//
+		// MergeSort task = new MergeSort(array);
+		//
+		// CountDownLatch l = new CountDownLatch(1);
+		// pool.start();
+		// pool.submit(task);
+		// task.getResult().whenResolved(() -> {
+		// //warning - a large print!! - you can remove this line if you wish
+		// System.out.println(Arrays.toString(task.getResult().get()));
+		// l.countDown();
+		// });
+		//
+		// l.await();
+		// pool.shutdown();
+	}
 
 }

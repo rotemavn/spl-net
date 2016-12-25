@@ -19,7 +19,7 @@ import java.util.Vector;
  */
 public class Deferred<T> {
 	
-	protected Vector<Runnable> callbacks;
+	protected Vector<Runnable> callbacks = new Vector<>();
 
 	private T val;
 	private boolean resolved;
@@ -80,8 +80,8 @@ public class Deferred<T> {
 		if (!resolved) {
 			resolved = true;
 			val = value;
-			callbacks.notifyAll();
 			for(int i=getNumberOFCallbacks()-1;i>=0;i--){
+				callbacks.get(i).notify();
 				callbacks.remove(i);
 			}
 		}
