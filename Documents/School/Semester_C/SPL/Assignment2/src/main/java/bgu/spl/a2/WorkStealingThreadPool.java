@@ -106,9 +106,10 @@ public class WorkStealingThreadPool {
      * start the threads belongs to this thread pool
      */
     public void start() {
+
         for (Thread p:processors) {
             System.out.println("Thread "+ p.toString()+" RUN"); //TODO
-            p.run();
+            p.start();
         }
     }
     
@@ -186,7 +187,7 @@ public class WorkStealingThreadPool {
      * @return the non empty queue we can steal from
      */
      int getVictimsQueueID(int thiefID){
-        final AtomicInteger victimID=new AtomicInteger(thiefID+1);
+        AtomicInteger victimID=new AtomicInteger((thiefID+1)%numOfProcessors);
         try {
             while (queues.get(victimID.get()).isEmpty() || victimID.get() == thiefID) {
                 if (victimID.get() == thiefID) {
