@@ -35,29 +35,29 @@ public class Processor implements Runnable {
     /*package*/ Processor(int id, WorkStealingThreadPool pool) {
         this.id = id;
         this.pool = pool;
-        
+
     }
 
     @Override
-    public void run() { 
-    	while(!Thread.currentThread().isInterrupted()&&shouldRun) {
+    public void run() {
+        while(!Thread.currentThread().isInterrupted()&&shouldRun) {
             try{
                 while(!pool.isQueueEmpty(id)) {
-                        pool.fetchTask(id).handle(this);
-                    }
-                steal();
+                    pool.fetchTask(id).handle(this);
                 }
-    	    	catch(Exception e){
-    	    	    Thread.currentThread().interrupt();
-    	    	    shouldRun=false;
-    	    	}
+                steal();
+            }
+            catch(Exception e){
+                Thread.currentThread().interrupt();
+                shouldRun=false;
+            }
         }
 //        System.out.println("Stopped");
 
 
 
     }
-    
+
     /**
      * The function adds a task to this processor's tasks queue
      * @param task a task to add to the head of the queue
@@ -68,9 +68,9 @@ public class Processor implements Runnable {
         }
 
     }
-    
+
     private void steal(){
-    	pool.steal(id);
+        pool.steal(id);
     }
 
     protected void suspend(Task<?> task){

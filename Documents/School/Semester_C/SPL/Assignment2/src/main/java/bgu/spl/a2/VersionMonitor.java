@@ -37,7 +37,9 @@ public class VersionMonitor {
                wait();
             }
             catch (InterruptedException e){
-                throw new InterruptedException();}
+                Thread.currentThread().interrupt();
+                throw new InterruptedException();
+            }
         }
         notifyAll();
     }

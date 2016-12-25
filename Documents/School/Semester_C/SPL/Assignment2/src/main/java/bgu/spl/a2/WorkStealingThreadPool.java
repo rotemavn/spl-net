@@ -17,11 +17,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * methods
  */
 public class WorkStealingThreadPool {
-	private final ArrayList<LinkedBlockingDeque<Task>> queues;
-	private final Thread[] processors;
-	private final int numOfProcessors;
-	private final VersionMonitor versionMonitor;
-	private boolean hasTasks=false;
+    private final ArrayList<LinkedBlockingDeque<Task>> queues;
+    private final Thread[] processors;
+    private final int numOfProcessors;
+    private final VersionMonitor versionMonitor;
+    private boolean hasTasks=false;
 
     /**
      * creates a {@link WorkStealingThreadPool} which has nthreads
@@ -36,15 +36,15 @@ public class WorkStealingThreadPool {
      * thread pool
      */
     public WorkStealingThreadPool(int nthreads) {
-    	numOfProcessors=nthreads;
-    	processors=new Thread[nthreads];
-    	queues=new ArrayList<LinkedBlockingDeque<Task>>(nthreads);
+        numOfProcessors=nthreads;
+        processors=new Thread[nthreads];
+        queues=new ArrayList<LinkedBlockingDeque<Task>>(nthreads);
         versionMonitor=new VersionMonitor();
-    	
-    	for(int i=0; i<nthreads; i++){
-    		queues.add(new LinkedBlockingDeque<Task>());
-    		processors[i]=new Thread(new Processor(i, this));
-    	}
+
+        for(int i=0; i<nthreads; i++){
+            queues.add(new LinkedBlockingDeque<Task>());
+            processors[i]=new Thread(new Processor(i, this));
+        }
     }
 
     /**
@@ -53,35 +53,35 @@ public class WorkStealingThreadPool {
      * @param task the task to execute
      */
     public void submit(Task<?> task) {
-    
-       int processorIndex=getRandomIndex();
-       if(processorIndex>-1)
-       {
-    	   queues.get(processorIndex).addFirst(task);
-           versionMonitor.inc();
-           if(!hasTasks){
-        	   hasTasks=true;
-        	   start();
-           }
-       }
-       else
-       {
-    	   throw new IllegalStateException("The number of processors is not valid");
-       }
+
+        int processorIndex=getRandomIndex();
+        if(processorIndex>-1)
+        {
+            queues.get(processorIndex).addFirst(task);
+            versionMonitor.inc();
+            if(!hasTasks){
+                hasTasks=true;
+                start();
+            }
+        }
+        else
+        {
+            throw new IllegalStateException("The number of processors is not valid");
+        }
     }
-    
+
     /**
      * The function generates a random integer between 0 and the number of processors
      * @return an integer value
      */
     protected int getRandomIndex(){
-    	try{
+        try{
             return ThreadLocalRandom.current().nextInt(numOfProcessors);
 
-    	}
-    	catch(Exception e){
-    		return -1;
-    	}
+        }
+        catch(Exception e){
+            return -1;
+        }
     }
 
     /**
@@ -97,15 +97,15 @@ public class WorkStealingThreadPool {
      * shutdown the queue is itself a processor of this queue
      */
     public void shutdown() throws InterruptedException {
-            for (Thread t:processors) {
+        for (Thread t:processors) {
 
-                if(t.equals(Thread.currentThread()))
-                    throw new UnsupportedOperationException();
-                t.interrupt();
-               // t.join();
+            if(t.equals(Thread.currentThread()))
+                throw new UnsupportedOperationException();
+            t.interrupt();
+            // t.join();
 
-            }
-            queues.clear();
+        }
+        queues.clear();
 
 
     }
@@ -114,74 +114,74 @@ public class WorkStealingThreadPool {
      * start the threads belongs to this thread pool
      */
     public void start() {
-    	if(hasTasks){
-	        for (Thread p:processors) {
-	            p.start();
-	        }
-    	}
+        if(hasTasks){
+            for (Thread p:processors) {
+                p.start();
+            }
+        }
     }
-    
+
     /**
      * The function access the queue of some processor and adds a new task to the head of the queue
      * @param id - the ID of the specific processor
      * @param task - the task to add
      */
-     void submitToProcessor(int id, Task<?> task){
+    void submitToProcessor(int id, Task<?> task){
         if(id>=numOfProcessors)
             throw new IndexOutOfBoundsException("The ID provided exeeded the number of availible processord");
         else
 
 
-        try{
-            queues.get(id).addFirst(task);
-            versionMonitor.inc();
-        }
-        catch (IndexOutOfBoundsException e){}
+            try{
+                queues.get(id).addFirst(task);
+                versionMonitor.inc();
+            }
+            catch (IndexOutOfBoundsException e){}
     }
-    
+
     /**
      * The function fetches the task at the head of the Processor's task queue
      * @param id the ID of a specific processor
      * @return the task at the head of the queue of the processor
      */
-     Task<?> fetchTask(int id){
-    	try {
-    	    return queues.get(id).pollFirst();
+    Task<?> fetchTask(int id){
+        try {
+            return queues.get(id).pollFirst();
         }
         catch (Exception e){
-    	    if(queues.get(id).isEmpty())
-    	        System.out.println("Processor with ID "+id+" is empty");
-    	    else
+            if(queues.get(id).isEmpty())
+                System.out.println("Processor with ID "+id+" is empty");
+            else
                 System.out.println("Processor with ID "+id+" does not exist in the pool");
         }
         return null;
     }
-    
+
     /**
      * The function checks if a processor's queue is empty
      * @param id - of the processor
      * @return true if the queue is empty
      */
-     boolean isQueueEmpty(int id){
-    	return queues.get(id).isEmpty();
+    boolean isQueueEmpty(int id){
+        return queues.get(id).isEmpty();
     }
 
-     void steal(int thiefID){
+    void steal(int thiefID){
         AtomicInteger victimID=new AtomicInteger(getVictimsQueueID(thiefID));
         AtomicInteger half=new AtomicInteger(queues.get(victimID.get()).size()/2);
         AtomicInteger tasksStolenCounter=new AtomicInteger(0);
 
         while (half.get()>0 && queues.get(victimID.get()).size()>0){
-        	try{
-	            queues.get(thiefID).addFirst(queues.get(victimID.get()).pollLast());
-	            tasksStolenCounter.getAndIncrement();
-	            half.getAndDecrement();
+            try{
+                queues.get(thiefID).addFirst(queues.get(victimID.get()).pollLast());
+                tasksStolenCounter.getAndIncrement();
+                half.getAndDecrement();
 
-        	}
-        	catch(Exception e)
-        	{
+            }
+            catch(Exception e)
+            {
 
-        	}
+            }
         }
         //if the thief could'nt steal any task
         if(tasksStolenCounter.get()==0){
@@ -200,20 +200,20 @@ public class WorkStealingThreadPool {
      * @param thiefID the processor ID who is trying to steal
      * @return the non empty queue we can steal from
      */
-     int getVictimsQueueID(int thiefID){
+    int getVictimsQueueID(int thiefID){
         AtomicInteger victimID=new AtomicInteger((thiefID+1)%numOfProcessors);
-            while (queues.get(victimID.get()).isEmpty() || victimID.get() != thiefID) {
-                if (victimID.get() == thiefID) {
-                	try{
-                        int version=versionMonitor.getVersion();
-                        versionMonitor.await(version);
-                	}
-                	catch(InterruptedException ex){
-
-                	}
+        while (queues.get(victimID.get()).isEmpty() || victimID.get() != thiefID) {
+            if (victimID.get() == thiefID) {
+                try{
+                    int version=versionMonitor.getVersion();
+                    versionMonitor.await(version);
                 }
-                victimID.set(victimID.incrementAndGet() % numOfProcessors);
+                catch(InterruptedException ex){
+
+                }
             }
+            victimID.set(victimID.incrementAndGet() % numOfProcessors);
+        }
         return victimID.get();
 
     }

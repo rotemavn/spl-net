@@ -126,26 +126,27 @@ public class MergeSort extends Task<int[]> {
 //		pool.submit(mergeSort1);
 //
 //		pool.shutdown();
+		for(int i=0; i<100; i++) {
+			WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
+			int n = 10000; //you may check on different number of elements if  you like
+			int[] array = new Random().ints(n).toArray();
+			System.out.println(Arrays.toString(array));
+			// int[] array = {16,2,5,10};
+			MergeSort task = new MergeSort(array);
 
-		 WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
-		 int n = 10000; //you may check on different number of elements if  you like
-		 int[] array = new Random().ints(n).toArray();
-		 System.out.println(Arrays.toString(array));
-		// int[] array = {16,2,5,10};
-		 MergeSort task = new MergeSort(array);
-		
-		 CountDownLatch l = new CountDownLatch(1);
-		 pool.start();
-		 pool.submit(task);
-		 
-		 task.getResult().whenResolved(() -> {
-		 //warning - a large print!! - you can remove this line if you wish
-		 System.out.println(Arrays.toString(task.getResult().get()));
-		 l.countDown();
-		 });
-		
-		 l.await();
-		 pool.shutdown();
+			CountDownLatch l = new CountDownLatch(1);
+			pool.start();
+			pool.submit(task);
+
+			task.getResult().whenResolved(() -> {
+				//warning - a large print!! - you can remove this line if you wish
+				System.out.println(Arrays.toString(task.getResult().get()));
+				l.countDown();
+			});
+
+			l.await();
+			pool.shutdown();
+		}
 	}
 
 }
