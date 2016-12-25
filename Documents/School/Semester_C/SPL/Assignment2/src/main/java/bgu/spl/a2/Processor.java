@@ -40,21 +40,16 @@ public class Processor implements Runnable {
     @Override
     public void run() { 
     	while(!Thread.currentThread().isInterrupted()) {
-    	    while(!pool.isQueueEmpty(id)) {
-    	    	try{
-                pool.fetchTask(id).handle(this);
-    	    	}
+            try{
+                while(!pool.isQueueEmpty(id)) {
+                        pool.fetchTask(id).handle(this);
+                    }
+                steal();
+                }
     	    	catch(Exception e){
-    	    		System.out.println("Rotem");
-    	    		//steal();
+    	    	    Thread.currentThread().interrupt();
     	    	}
-            }
-            steal();
         }
-
-    }
-
-    private void startTask(){
 
     }
     

@@ -103,10 +103,14 @@ public class Deferred<T> {
 	 *            the callback to be called when the deferred object is resolved
 	 */
 	public synchronized void whenResolved(Runnable callback) {
-		if (!resolved)
-			callbacks.add(callback);
-		else
-			callback.run();
+
+		if (!resolved) {
+            callbacks.add(callback);
+        }
+		else {
+            callback.run();
+        }
+
 	}
 
 }

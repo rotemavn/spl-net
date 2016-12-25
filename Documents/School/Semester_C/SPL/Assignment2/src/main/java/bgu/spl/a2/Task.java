@@ -141,7 +141,7 @@ public abstract class Task<R> {
 	 * @param result
 	 *            - the task calculated result
 	 */
-	protected final void complete(R result) {
+	protected  final void complete(R result) {
 		deferred.resolve(result);
 	}
 

@@ -34,11 +34,11 @@ public class VersionMonitor {
     public synchronized void await(int version) throws InterruptedException {
         while (currentVersion.get()==version){
             try {
-            	System.out.println(Thread.currentThread().getName());
                wait();
             }
-            catch (InterruptedException e){throw new InterruptedException();}
+            catch (InterruptedException e){
+                throw new InterruptedException();}
         }
-
-         }
+        notifyAll();
+    }
 }
