@@ -127,8 +127,8 @@ public class MergeSort extends Task<int[]> {
 //
 //		pool.shutdown();
 
-		 WorkStealingThreadPool pool = new WorkStealingThreadPool(8);
-		 int n = 10; //you may check on different number of elements if  you like
+		 WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
+		 int n = 10000; //you may check on different number of elements if  you like
 		 int[] array = new Random().ints(n).toArray();
 		 System.out.println(Arrays.toString(array));
 		// int[] array = {16,2,5,10};

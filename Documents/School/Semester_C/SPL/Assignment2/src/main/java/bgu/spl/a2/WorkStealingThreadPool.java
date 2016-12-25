@@ -97,9 +97,16 @@ public class WorkStealingThreadPool {
      * shutdown the queue is itself a processor of this queue
      */
     public void shutdown() throws InterruptedException {
-        for (Thread t:processors) {
-            t.interrupt();
-        }
+            for (Thread t:processors) {
+
+                if(t.equals(Thread.currentThread()))
+                    throw new UnsupportedOperationException();
+                t.interrupt();
+               // t.join();
+
+            }
+            queues.clear();
+
 
     }
 

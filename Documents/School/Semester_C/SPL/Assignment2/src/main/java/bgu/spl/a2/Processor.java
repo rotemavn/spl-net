@@ -14,6 +14,7 @@ public class Processor implements Runnable {
 
     private final WorkStealingThreadPool pool;
     private final int id;
+    private boolean shouldRun=true;
 
     /**
      * constructor for this class
@@ -39,7 +40,7 @@ public class Processor implements Runnable {
 
     @Override
     public void run() { 
-    	while(!Thread.currentThread().isInterrupted()) {
+    	while(!Thread.currentThread().isInterrupted()&&shouldRun) {
             try{
                 while(!pool.isQueueEmpty(id)) {
                         pool.fetchTask(id).handle(this);
@@ -48,8 +49,12 @@ public class Processor implements Runnable {
                 }
     	    	catch(Exception e){
     	    	    Thread.currentThread().interrupt();
+    	    	    shouldRun=false;
     	    	}
         }
+//        System.out.println("Stopped");
+
+
 
     }
     
@@ -79,8 +84,5 @@ public class Processor implements Runnable {
             steal();
         }
     }
-
-
-
 
 }
