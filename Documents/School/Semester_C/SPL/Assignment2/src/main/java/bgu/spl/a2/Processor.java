@@ -38,11 +38,16 @@ public class Processor implements Runnable {
     }
 
     @Override
-    public void run() {
-        System.out.println("Processor entered run method"); //TODO
+    public void run() { 
     	while(!Thread.currentThread().isInterrupted()) {
     	    while(!pool.isQueueEmpty(id)) {
+    	    	try{
                 pool.fetchTask(id).handle(this);
+    	    	}
+    	    	catch(Exception e){
+    	    		System.out.println("Rotem");
+    	    		//steal();
+    	    	}
             }
             steal();
         }

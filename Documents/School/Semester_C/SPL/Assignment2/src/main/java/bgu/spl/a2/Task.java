@@ -31,7 +31,7 @@ public abstract class Task<R> {
 	private Runnable callback; // once all the derived tasks are resolved we
 								// will activate the run method of the pro
 	private AtomicInteger tasksLeft = new AtomicInteger(0); // integer made in
-															// oreder to count
+															// order to count
 															// the number of
 															// derived tasks
 															// which current
@@ -67,19 +67,19 @@ public abstract class Task<R> {
 			started = true;
 		}
 
-		for (int i = 0; i < tasks.size(); i++) {
-			if (tasks.get(i).getResult().isResolved()) {
-				tasks.remove(i);
-				tasksLeft.decrementAndGet();
-			}
-		}
+//		for (int i = 0; i < tasks.size(); i++) {
+//			if (tasks.get(i).getResult().isResolved()) {
+//				tasks.remove(i);
+//				tasksLeft.decrementAndGet();
+//			}
+//		}
 
-		if (tasksLeft.get()!=0) {
-			handler.suspend(this);
-		} else {
-			if (callback != null)
+	//	if (tasksLeft.get()>0) {
+	//		handler.suspend(this);
+	//	} else {
+			if (callback != null && tasksLeft.get()==0)
 				callback.run();
-		}
+		//}
 
 		// while (tasksLeft.get() > 0) { // while the currents tasks still have
 		// tasks
@@ -126,7 +126,11 @@ public abstract class Task<R> {
 		this.callback = callback;
 		for (Task<?> t : tasks) {
 			this.tasks.add(t);
-			// t.getResult().addCallback(callback);
+			t.getResult().whenResolved(()->{
+				if(tasksLeft.decrementAndGet()==0){
+					handler.scheduleTask(this);
+				}
+			});
 		}
 	}
 
