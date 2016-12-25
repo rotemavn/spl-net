@@ -95,7 +95,7 @@ public class WorkStealingThreadPool {
      */
     public void shutdown() throws InterruptedException {
         for (Thread t:processors) {
-            t.interrupt();
+           // t.interrupt();
             t.join();
 
         }
@@ -156,7 +156,6 @@ public class WorkStealingThreadPool {
      * @return true if the queue is empty
      */
      boolean isQueueEmpty(int id){
-    	System.out.println( queues.get(id).isEmpty());
     	return queues.get(id).isEmpty();
     }
 

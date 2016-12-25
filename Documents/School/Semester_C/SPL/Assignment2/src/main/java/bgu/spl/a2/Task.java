@@ -22,10 +22,12 @@ public abstract class Task<R> {
 	private Deferred<R> deferred = new Deferred<R>();
 
 	private boolean started;
-	private Vector<Task<?>> tasks = new Vector<>(); // vector containing all the
-													// tasks which the current
-													// task is waiting for
-													// completion
+	protected Vector<Task<?>> tasks = new Vector<>(); // vector containing all
+														// the
+														// tasks which the
+														// current
+														// task is waiting for
+														// completion
 	private Runnable callback; // once all the derived tasks are resolved we
 								// will activate the run method of the pro
 	private AtomicInteger tasksLeft = new AtomicInteger(0); // integer made in
@@ -65,21 +67,35 @@ public abstract class Task<R> {
 			started = true;
 		}
 
-		if (tasksLeft.get() > 0) { // while the currents tasks still have tasks
-									// which it depends on
-			for (int i = 0; i < tasks.size(); i++) {
-				if (tasks.get(i).getResult().isResolved()) {
-					tasks.remove(i);
-					tasksLeft.decrementAndGet();
-				} else { // if there is still tasks needed to be complete
-					handler.suspend(this);
-					break;
-				}
+		for (int i = 0; i < tasks.size(); i++) {
+			if (tasks.get(i).getResult().isResolved()) {
+				tasks.remove(i);
+				tasksLeft.decrementAndGet();
 			}
-		} else { // all the tasks the current task needed to be resolved are
-					// indeed resolved
-			callback.run();
 		}
+
+		if (tasksLeft.get()!=0) {
+			handler.suspend(this);
+		} else {
+			if (callback != null)
+				callback.run();
+		}
+
+		// while (tasksLeft.get() > 0) { // while the currents tasks still have
+		// tasks
+		// // which it depends on
+		// for (int i = 0; i < tasks.size(); i++) {
+		// if (tasks.get(i).getResult().isResolved()) {
+		// tasks.remove(i);
+		// tasksLeft.decrementAndGet();
+		// } else { // if there is still tasks needed to be complete
+		// handler.suspend(this);
+		// }
+		// }
+		// } // all the tasks the current task needed to be resolved are
+		// // indeed resolved
+		// if (callback!=null)
+		// callback.run();
 
 	}
 
@@ -107,11 +123,11 @@ public abstract class Task<R> {
 	 */
 	protected final void whenResolved(Collection<? extends Task<?>> tasks, Runnable callback) {
 		tasksLeft.set(tasks.size());
+		this.callback = callback;
 		for (Task<?> t : tasks) {
 			this.tasks.add(t);
 			// t.getResult().addCallback(callback);
 		}
-		this.callback = callback;
 	}
 
 	/**
@@ -123,7 +139,6 @@ public abstract class Task<R> {
 	 */
 	protected final void complete(R result) {
 		deferred.resolve(result);
-		callback.run();
 	}
 
 	/**
