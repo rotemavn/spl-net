@@ -6,8 +6,11 @@
 package bgu.spl.a2.sim;
 
 import bgu.spl.a2.WorkStealingThreadPool;
+import bgu.spl.a2.sim.tools.GcdScrewDriver;
+import bgu.spl.a2.sim.tools.NextPrimeHammer;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.prefs.Preferences;
 
 
 /**
@@ -27,7 +30,13 @@ public class Simulator {
      */
     public static void attachWorkStealingThreadPool(WorkStealingThreadPool myWorkStealingThreadPool){}
 
-    public static int main(String [] args){
-        return 0;
+    public static void main(String [] args){
+
+
+        NextPrimeHammer check = new NextPrimeHammer();
+
+
+
+
     }
 }
