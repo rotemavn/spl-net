@@ -44,30 +44,33 @@ public class Processor implements Runnable {
 
     @Override
     public void run() {
-        Task<?> currTask;
-        while(!pool.stopRun) {
-            currTask = pool.fetchTask(id);
-            if(currTask!=null){
-                currTask.handle(this);
-            }
-
-
-
-
-//            try{
-//                while(!pool.isQueueEmpty(id)) {
+        while(!Thread.currentThread().isInterrupted()&&shouldRun) {
+            int vm = pool.versionMonitor.getVersion();
+            try{
+                Task<?> currTask;
+//                if(!pool.isQueueEmpty(id)) {
 //                    pool.fetchTask(id).handle(this);
 //                }
-//                int ver = pool.versionMonitor.getVersion();
-//                steal(ver);
-//            }
-//
-//            catch(Exception e){
-//                Thread.currentThread().interrupt();
-//                shouldRun=false;
-//            }
+//                else if(steal()){
+//                    pool.fetchTask(id).handle(this);
+//                }
+                currTask = pool.fetchTask(id);
+                if(currTask!=null){
+                    currTask.handle(this);
+                }
+                else{
+                    pool.poolWait(vm);
+                }
+            }
+            catch(Exception e){
+                Thread.currentThread().interrupt();
+                shouldRun=false;
+            }
         }
 //        System.out.println("Stopped");
+
+
+
     }
 
     /**
@@ -80,26 +83,21 @@ public class Processor implements Runnable {
         }
 
     }
-
-    private void steal(int ver){
-        final int numOfProcessors=pool.getNumOfProcessors();
-        AtomicBoolean stealSuccedded=new AtomicBoolean(false);
-        AtomicInteger stealAttempts=new AtomicInteger(0);
-        while (!stealSuccedded.get()&& stealAttempts.get()<numOfProcessors){
-            int victimID=((id+stealAttempts.get()+1)%numOfProcessors);
-            int numOfTasksStolen=pool.steal(id,victimID);
-            if(numOfTasksStolen>0){
-                stealSuccedded.set(true);
-            }
-            else {
-               stealAttempts.getAndIncrement();
-            }
-        }
-        if(stealAttempts.get()==numOfProcessors){
-            pool.poolWait(ver);
-        }
-
-    }
+//
+//    private boolean steal() {
+//        final int numOfProcessors = pool.getNumOfProcessors();
+//        AtomicBoolean stealSuccedded = new AtomicBoolean(false);
+//        AtomicInteger stealAttempts = new AtomicInteger(0);
+//        while (!stealSuccedded.get() && stealAttempts.get() < numOfProcessors) {
+//            int victimID = ((id + stealAttempts.get() + 1) % numOfProcessors);
+//            int numOfTasksStolen = pool.steal(id, victimID);
+//            if (numOfTasksStolen > 0) {
+//                return true;
+//            }
+//            stealAttempts.incrementAndGet();
+//        }
+//        return false;
+//    }
 
 //    protected void suspend(Task<?> task){
 //        if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){

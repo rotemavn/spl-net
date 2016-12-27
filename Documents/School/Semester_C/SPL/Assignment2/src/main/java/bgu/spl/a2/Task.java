@@ -23,19 +23,19 @@ public abstract class Task<R> {
 
 	private boolean started;
 	protected Vector<Task<?>> tasks = new Vector<>(); // vector containing all
-														// the
-														// tasks which the
-														// current
-														// task is waiting for
-														// completion
+	// the
+	// tasks which the
+	// current
+	// task is waiting for
+	// completion
 	private Runnable callback; // once all the derived tasks are resolved we
-								// will activate the run method of the pro
+	// will activate the run method of the pro
 	private AtomicInteger tasksLeft = new AtomicInteger(0); // integer made in
-															// order to count
-															// the number of
-															// derived tasks
-															// which current
-															// tasks depends on
+	// order to count
+	// the number of
+	// derived tasks
+	// which current
+	// tasks depends on
 
 	/**
 	 * start handling the task - note that this method is protected, a handler
@@ -74,11 +74,11 @@ public abstract class Task<R> {
 //			}
 //		}
 
-	//	if (tasksLeft.get()>0) {
-	//		handler.suspend(this);
-	//	} else {
-			if (callback != null && tasksLeft.get()==0)
-				callback.run();
+		//	if (tasksLeft.get()>0) {
+		//		handler.suspend(this);
+		//	} else {
+		if (callback != null && tasksLeft.get()==0)
+			callback.run();
 		//}
 
 		// while (tasksLeft.get() > 0) { // while the currents tasks still have
@@ -125,7 +125,7 @@ public abstract class Task<R> {
 		tasksLeft.set(tasks.size());
 		this.callback = callback;
 		for (Task<?> t : tasks) {
-			this.tasks.add(t);
+			//this.tasks.add(t);
 			t.getResult().whenResolved(()->{
 				if(tasksLeft.decrementAndGet()==0){
 					handler.scheduleTask(this);

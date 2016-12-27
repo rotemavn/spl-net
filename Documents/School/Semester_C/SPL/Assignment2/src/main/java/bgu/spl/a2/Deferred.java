@@ -18,7 +18,7 @@ import java.util.Vector;
  *            the result type
  */
 public class Deferred<T> {
-	
+
 	protected Vector<Runnable> callbacks = new Vector<>();
 	private T val;
 	private boolean resolved;
@@ -48,7 +48,7 @@ public class Deferred<T> {
 			return val;
 		}
 		else{
-			throw new IllegalStateException("Not Yet Resolved.");	
+			throw new IllegalStateException("Not Yet Resolved.");
 		}
 	}
 
@@ -75,7 +75,7 @@ public class Deferred<T> {
 	 * @throws IllegalStateException
 	 *             in the case where this object is already resolved
 	 */
-	public void resolve(T value) {
+	public synchronized void resolve(T value) {
 		if (!resolved) {
 			resolved = true;
 			val = value;
@@ -105,11 +105,11 @@ public class Deferred<T> {
 	public synchronized void whenResolved(Runnable callback) {
 
 		if (!resolved) {
-            callbacks.add(callback);
-        }
+			callbacks.add(callback);
+		}
 		else {
-            callback.run();
-        }
+			callback.run();
+		}
 
 	}
 
