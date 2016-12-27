@@ -15,7 +15,6 @@ public class Product {
     private long _finalId;
     private String _name;
     private List<Product> productsNeeded;
-    private Vector<Tool> toolsNeeded;
 
     /**
      * Constructor
@@ -24,9 +23,9 @@ public class Product {
      */
     public Product(long startId, String name){
         _startId = startId;
+        _finalId = startId;
         _name = name;
         productsNeeded = new Vector<>();
-        toolsNeeded = new Vector<>();
     }
 
 
@@ -49,13 +48,7 @@ public class Product {
      * final ID is the ID the product received as the sum of all UseOn();
      */
     public long getFinalId(){
-        _finalId = _startId;
-        //sums all the results from the use of the product on it's tools
-        for(AtomicInteger i = new AtomicInteger(0);i.get()<toolsNeeded.size();i.incrementAndGet()){
-            _finalId += toolsNeeded.get(i.get()).useOn(this);
-        }
-        //sums all the final id's of the products needed to assemble the current product
-        for(AtomicInteger i = new AtomicInteger(0);i.get()<toolsNeeded.size();i.incrementAndGet()){
+        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
             _finalId += productsNeeded.get(i.get()).getFinalId();
         }
         return _finalId;
@@ -74,13 +67,10 @@ public class Product {
         productsNeeded.add(p);
     }
 
-    /**
-     * adds the tools needed to assemble the product
-     * @param tools - the tools needed to assemble the object
-     */
-    public void addTools(Vector<Tool> tools){
-        toolsNeeded = tools;
+    public void setFinalId(long toAdd){
+        _finalId+= toAdd;
     }
+
 
 
 

@@ -118,13 +118,12 @@ public class MergeSort extends Task<int[]> {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		for (int i = 0; i < 7; i++) {
-			System.out.println("Attepmt No. "+i);
-			WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
-			int n = 1000; //you may check on different number of elements if  you like
+		for (int i = 0; i < 1; i++) {
+			//System.out.println("Attepmt No. "+i);
+			WorkStealingThreadPool pool = new WorkStealingThreadPool(5);
+			int n = 400; //you may check on different number of elements if  you like
 			int[] array = new Random().ints(n).toArray();
 			System.out.println(Arrays.toString(array));
-			// int[] array = {16,2,5,10};
 			MergeSort task = new MergeSort(array);
 
 			CountDownLatch l = new CountDownLatch(1);
