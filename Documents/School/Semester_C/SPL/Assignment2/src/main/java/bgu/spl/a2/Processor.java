@@ -1,4 +1,8 @@
 package bgu.spl.a2;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * this class represents a single work stealing processor, it is
  * {@link Runnable} so it is suitable to be executed by threads.
@@ -46,6 +50,7 @@ public class Processor implements Runnable {
                     pool.fetchTask(id).handle(this);
                 }
                 steal();
+
             }
             catch(Exception e){
                 Thread.currentThread().interrupt();
@@ -70,19 +75,38 @@ public class Processor implements Runnable {
     }
 
     private void steal(){
-        pool.steal(id);
-    }
-
-    protected void suspend(Task<?> task){
-        if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){
-            Task t=pool.fetchTask(id);
-            pool.submitToProcessor(id,task);
-            t.handle(this);
+        final int numOfProcessors=pool.getNumOfProcessors();
+        AtomicBoolean stealSuccedded=new AtomicBoolean(false);
+        AtomicInteger stealAttempts=new AtomicInteger(0);
+        while (!stealSuccedded.get()&& stealAttempts.get()<=numOfProcessors){
+            AtomicInteger victimID=new AtomicInteger((id+stealAttempts.get()+1)%numOfProcessors);
+            int numOfTasksStolen=pool.steal(id,victimID.get());
+            if(numOfTasksStolen>0){
+                stealSuccedded.set(true);
+                System.out.println(Thread.currentThread().getName());
+            }
+            else {
+               stealAttempts.getAndIncrement();
+            }
+        }
+        if(stealAttempts.get()==numOfProcessors){
+            pool.poolWait();
         }
         else {
-            pool.submitToProcessor(id,task);
-            steal();
+            pool.setInc();
         }
     }
+
+//    protected void suspend(Task<?> task){
+//        if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){
+//            Task t=pool.fetchTask(id);
+//            pool.submitToProcessor(id,task);
+//            t.handle(this);
+//        }
+//        else {
+//            pool.submitToProcessor(id,task);
+//            steal();
+//        }
+//    }
 
 }

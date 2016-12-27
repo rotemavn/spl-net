@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -102,8 +103,6 @@ public class WorkStealingThreadPool {
             if(t.equals(Thread.currentThread()))
                 throw new UnsupportedOperationException();
             t.interrupt();
-            // t.join();
-
         }
         queues.clear();
 
@@ -129,14 +128,14 @@ public class WorkStealingThreadPool {
     void submitToProcessor(int id, Task<?> task){
         if(id>=numOfProcessors)
             throw new IndexOutOfBoundsException("The ID provided exeeded the number of availible processord");
-        else
-
-
-            try{
+        else {
+            try {
                 queues.get(id).addFirst(task);
                 versionMonitor.inc();
             }
-            catch (IndexOutOfBoundsException e){}
+            catch (IndexOutOfBoundsException e) {
+            }
+        }
     }
 
     /**
@@ -144,7 +143,7 @@ public class WorkStealingThreadPool {
      * @param id the ID of a specific processor
      * @return the task at the head of the queue of the processor
      */
-    Task<?> fetchTask(int id){
+    Task<?> fetchTask(int id){;
         try {
             return queues.get(id).pollFirst();
         }
@@ -164,36 +163,63 @@ public class WorkStealingThreadPool {
      */
     boolean isQueueEmpty(int id){
         return queues.get(id).isEmpty();
+
     }
 
-    void steal(int thiefID){
-        AtomicInteger victimID=new AtomicInteger(getVictimsQueueID(thiefID));
-        AtomicInteger half=new AtomicInteger(queues.get(victimID.get()).size()/2);
-        AtomicInteger tasksStolenCounter=new AtomicInteger(0);
-
-        while (half.get()>0 && queues.get(victimID.get()).size()>0){
-            try{
-                queues.get(thiefID).addFirst(queues.get(victimID.get()).pollLast());
-                tasksStolenCounter.getAndIncrement();
-                half.getAndDecrement();
-
-            }
-            catch(Exception e)
-            {
-
-            }
+    int steal(int thiefID,int victim) {
+        System.out.println(Thread.currentThread().getName());
+        int size=queues.get(victim).size();
+        int half=0;
+        if (size>0){
+            half=half/2;
         }
-        //if the thief could'nt steal any task
-        if(tasksStolenCounter.get()==0){
+        AtomicInteger tasksStolenCounter = new AtomicInteger(0);
+
+        while (half > 0 && queues.get(victim).size() > 0) {
+            System.out.println("Entered While");
             try {
-                int version=versionMonitor.getVersion();
-                versionMonitor.await(version);
-            }
-            catch (InterruptedException ignore){
-//                Thread.currentThread().interrupt();
+                queues.get(thiefID).addFirst(queues.get(victim).pollLast());
+                tasksStolenCounter.getAndIncrement();
+                half--;
+
+            } catch (Exception e) {
+
             }
         }
+        System.out.println(tasksStolenCounter.get());
+        return tasksStolenCounter.get();
     }
+
+//    void steal(int thiefID){
+//        AtomicInteger victimID=new AtomicInteger(getVictimsQueueID(thiefID));
+//        AtomicInteger half=new AtomicInteger(queues.get(victimID.get()).size()/2);
+//        AtomicInteger tasksStolenCounter=new AtomicInteger(0);
+//
+//        while (half.get()>0 && queues.get(victimID.get()).size()>0){
+//            try{
+//                queues.get(thiefID).addFirst(queues.get(victimID.get()).pollLast());
+//                tasksStolenCounter.getAndIncrement();
+//                half.getAndDecrement();
+//
+//            }
+//            catch(Exception e)
+//            {
+//
+//            }
+//        }
+//        //if the thief could'nt steal any task
+//        if(tasksStolenCounter.get()==0){
+//            try {
+//                AtomicInteger version=new AtomicInteger(versionMonitor.getVersion());
+//                versionMonitor.await(version.get());
+//
+//            }
+//            catch (InterruptedException ignore){
+//                Thread.currentThread().interrupt();
+//
+//            }
+//        }
+//    }
 
     /**
      * The function searches the next non-empty queue to be the origin to steal from
@@ -202,20 +228,40 @@ public class WorkStealingThreadPool {
      */
     int getVictimsQueueID(int thiefID){
         AtomicInteger victimID=new AtomicInteger((thiefID+1)%numOfProcessors);
-        while (queues.get(victimID.get()).isEmpty() || victimID.get() != thiefID) {
+        while (queues.get(victimID.get()).isEmpty() || victimID.get() == thiefID) {
             if (victimID.get() == thiefID) {
                 try{
                     int version=versionMonitor.getVersion();
                     versionMonitor.await(version);
+                    break;
                 }
                 catch(InterruptedException ex){
-
                 }
             }
-            victimID.set(victimID.incrementAndGet() % numOfProcessors);
+            else {
+                victimID.set(victimID.incrementAndGet() % numOfProcessors);
+            }
         }
         return victimID.get();
 
+    }
+
+    protected int getNumOfProcessors(){
+        return numOfProcessors;
+    }
+
+
+    protected void poolWait(){
+        try{
+            int version=versionMonitor.getVersion();
+            versionMonitor.await(version);
+        }
+        catch(InterruptedException ex){
+        }
+    }
+
+    protected void setInc(){
+        versionMonitor.inc();
     }
 
 

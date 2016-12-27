@@ -1,4 +1,4 @@
-package bgu.spl.a2.sim.Tasks;
+package bgu.spl.a2.sim.tasks;
 
 import bgu.spl.a2.Task;
 import bgu.spl.a2.sim.Product;

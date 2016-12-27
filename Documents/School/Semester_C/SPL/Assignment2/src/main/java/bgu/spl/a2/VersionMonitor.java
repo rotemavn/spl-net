@@ -29,18 +29,23 @@ public class VersionMonitor {
     public synchronized void inc() {
         currentVersion.getAndIncrement();
         notifyAll();
+
     }
 
     public synchronized void await(int version) throws InterruptedException {
         while (currentVersion.get()==version){
             try {
+
                wait();
             }
             catch (InterruptedException e){
                 Thread.currentThread().interrupt();
+
                 throw new InterruptedException();
             }
         }
         notifyAll();
     }
+
+
 }
