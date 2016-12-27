@@ -35,10 +35,11 @@ public class VersionMonitor {
     public synchronized void await(int version) throws InterruptedException {
         while (currentVersion.get()==version){
             try {
-
+//                System.out.println(Thread.currentThread().getName()+ "wait");
                wait();
             }
             catch (InterruptedException e){
+                notifyAll();
                 Thread.currentThread().interrupt();
 
                 throw new InterruptedException();

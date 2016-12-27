@@ -74,16 +74,16 @@ public class Processor implements Runnable {
 
     }
 
-    private void steal(){
+    private synchronized void steal(){
         final int numOfProcessors=pool.getNumOfProcessors();
         AtomicBoolean stealSuccedded=new AtomicBoolean(false);
         AtomicInteger stealAttempts=new AtomicInteger(0);
-        while (!stealSuccedded.get()&& stealAttempts.get()<=numOfProcessors){
-            AtomicInteger victimID=new AtomicInteger((id+stealAttempts.get()+1)%numOfProcessors);
-            int numOfTasksStolen=pool.steal(id,victimID.get());
+        while (!stealSuccedded.get()&& stealAttempts.get()<numOfProcessors){
+            int victimID=((id+stealAttempts.get()+1)%numOfProcessors);
+            int numOfTasksStolen=pool.steal(id,victimID);
             if(numOfTasksStolen>0){
                 stealSuccedded.set(true);
-                System.out.println(Thread.currentThread().getName());
+
             }
             else {
                stealAttempts.getAndIncrement();
@@ -92,9 +92,7 @@ public class Processor implements Runnable {
         if(stealAttempts.get()==numOfProcessors){
             pool.poolWait();
         }
-        else {
-            pool.setInc();
-        }
+
     }
 
 //    protected void suspend(Task<?> task){
