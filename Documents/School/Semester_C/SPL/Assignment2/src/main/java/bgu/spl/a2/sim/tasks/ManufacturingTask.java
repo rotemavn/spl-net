@@ -20,7 +20,7 @@ public class ManufacturingTask extends Task<Product> {
     private ManufactoringPlan plan;
     private Vector<Task<Product>> tasks;
     private Product mainProduct;
-
+    private AtomicInteger numOfToolsLeft = new AtomicInteger(0);
     public ManufacturingTask(Product mainProduct, Warehouse warehouse, ManufactoringPlan plan) {
         this.mainProduct = mainProduct;
         this.plan = plan;
@@ -50,35 +50,46 @@ public class ManufacturingTask extends Task<Product> {
             whenResolved(tasks, () -> {
                 // acquiring the tools needed
                 String[] toolsNeeded = plan.getTools();
-                Vector<Deferred<Tool>> tools = new Vector<>();
+                numOfToolsLeft.set(toolsNeeded.length);
+              //  Vector<Deferred<Tool>> tools = new Vector<>();
                 // acquiring the tools needed according to the product plan
                 for (AtomicInteger i = new AtomicInteger(0); i.get() < toolsNeeded.length; i.incrementAndGet()) {
-                    tools.add(warehouse.acquireTool(toolsNeeded[i.get()]));
-                }
-                //verifying all the tools acquired are indeed resolved
-                boolean allResolved = true;
-                while (allResolved) {
-                    allResolved = true;
-                    for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-                        if (!tools.get(i.get()).isResolved()) {
-                            allResolved = false;
-                            break;
+                    Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[i.get()]);
+                    tool.whenResolved(()->{
+                        for(int j =0;j<tasks.size();j++){
+                            mainProduct.setFinalId(tool.get().useOn(tasks.get(j).getResult().get()));
                         }
+                        numOfToolsLeft.decrementAndGet();
+                        warehouse.releaseTool(tool.get());
+                    });
+                   // tools.add(tool);
+                }
 
-                    }
-                }
-                List<Product> finishedSubProducts = mainProduct.getParts();
-                //for each tool , activating the useOn function on all sub products
-                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-                    for (AtomicInteger j = new AtomicInteger(0); j.get() < finishedSubProducts.size(); j.incrementAndGet()) {
-                        mainProduct.setFinalId(tools.get(i.get()).get().useOn(finishedSubProducts.get(j.get())));
-                    }
-                }
-                //after assembling the current main product, releasing the tools acquired
-                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-                    warehouse.releaseTool(tools.get(i.get()).get());
-                }
+                //verifying all the tools acquired are indeed resolved
+//                boolean allResolved = true;
+//                while (allResolved) {
+//                    allResolved = true;
+//                    for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
+//                        if (!tools.get(i.get()).isResolved()) {
+//                            allResolved = false;
+//                            break;
+//                        }
+//
+//                    }
+//                }
+//                List<Product> finishedSubProducts = mainProduct.getParts();
+//                //for each tool , activating the useOn function on all sub products
+//                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
+//                    for (AtomicInteger j = new AtomicInteger(0); j.get() < finishedSubProducts.size(); j.incrementAndGet()) {
+//                        mainProduct.setFinalId(tools.get(i.get()).get().useOn(finishedSubProducts.get(j.get())));
+//                    }
+//                }
+//                //after assembling the current main product, releasing the tools acquired
+//                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
+//                    warehouse.releaseTool(tools.get(i.get()).get());
+//                }
                 //product is assembled
+                while(numOfToolsLeft.get()!=0);
                 complete(mainProduct);
             });
         }
