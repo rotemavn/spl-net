@@ -49,9 +49,6 @@ public class MergeSort extends Task<int[]> {
 				if (array.length > 1) {
 					int[] ans = new int[array.length];
 					merge(mergeSortTasks.get(0).getResult().get(), mergeSortTasks.get(1).getResult().get(), ans);
-//					for(int i=0;i<ans.length;i++){
-//						System.out.print(ans[i]+" ");
-//					}
 					complete(ans);
 				} else {
 				}

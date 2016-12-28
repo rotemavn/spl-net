@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Warehouse {
     private final Vector<String> indexMapping;
-    private final Vector<ConcurrentLinkedQueue> toolsLists;
-    private final Vector<ConcurrentLinkedQueue> deferredLists;
+    private final Vector<ConcurrentLinkedQueue<Tool>> toolsLists;
+    private final Vector<ConcurrentLinkedQueue<Deferred<Tool>>> deferredLists;
     private final ConcurrentHashMap<String,ManufactoringPlan> plans;
     /**
      * Constructor
@@ -33,14 +33,14 @@ public class Warehouse {
         indexMapping.add(2,"rs-pliers");
 
         toolsLists=new Vector<>();
-        toolsLists.add(0,new ConcurrentLinkedQueue<GcdScrewDriver>());
-        toolsLists.add(1,new ConcurrentLinkedQueue<NextPrimeHammer>());
-        toolsLists.add(2,new ConcurrentLinkedQueue<RandomSumPliers>());
+        toolsLists.add(0,new ConcurrentLinkedQueue<Tool>());
+        toolsLists.add(1,new ConcurrentLinkedQueue<Tool>());
+        toolsLists.add(2,new ConcurrentLinkedQueue<Tool>());
 
         deferredLists=new Vector<>();
-        deferredLists.add(0,new ConcurrentLinkedQueue<Deferred>());
-        deferredLists.add(1,new ConcurrentLinkedQueue<Deferred>());
-        deferredLists.add(2,new ConcurrentLinkedQueue<Deferred>());
+        deferredLists.add(0,new ConcurrentLinkedQueue<Deferred<Tool>>());
+        deferredLists.add(1,new ConcurrentLinkedQueue<Deferred<Tool>>());
+        deferredLists.add(2,new ConcurrentLinkedQueue<Deferred<Tool>>());
 
         plans=new ConcurrentHashMap<>();
 
@@ -53,14 +53,14 @@ public class Warehouse {
      * @param type - string describing the required tool
      * @return a deferred promise for the  requested tool
      */
-    public synchronized Deferred<Tool> acquireTool(String type){
+    public Deferred<Tool> acquireTool(String type){
         System.out.println("aquire tool");
         Deferred<Tool> deferred=new Deferred<>();
         int index=indexMapping.indexOf(type);
 
         //if the tool exists in the warehouse then resolve immediately
         if(!toolsLists.elementAt(index).isEmpty()){
-            Tool tool = (Tool) toolsLists.elementAt(index).poll();
+            Tool tool = toolsLists.elementAt(index).poll();
             deferred.resolve(tool);
         }
 
@@ -83,7 +83,7 @@ public class Warehouse {
 
         //if there are deferred waiting for this type of tool poll a deferred and resolve it
         if(!deferredLists.elementAt(index).isEmpty()){
-            Deferred<Tool> deferred= (Deferred<Tool>) deferredLists.elementAt(index).poll();
+            Deferred<Tool> deferred= deferredLists.elementAt(index).poll();
             deferred.resolve(tool);
         }
 
@@ -91,7 +91,6 @@ public class Warehouse {
         else{
             toolsLists.elementAt(index).add(tool);
         }
-
     }
 
 
