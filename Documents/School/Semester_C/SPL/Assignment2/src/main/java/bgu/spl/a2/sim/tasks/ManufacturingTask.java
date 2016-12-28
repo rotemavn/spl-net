@@ -30,10 +30,10 @@ public class ManufacturingTask extends Task<Product> {
 
     @Override
     public void start() {
-        System.out.println("manufacturing start");
         String[] partsNeeded = plan.getParts();
 
         if (partsNeeded.length == 0) {
+
             complete(mainProduct);
         } else {
             //defining the sub products, add them to the main product, and creating tasks for them
@@ -57,10 +57,10 @@ public class ManufacturingTask extends Task<Product> {
                     Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[i.get()]);
                     tool.whenResolved(()->{
                         for(int j =0;j<tasks.size();j++){
-                            mainProduct.setFinalId(tool.get().useOn(tasks.get(j).getResult().get()));
+                            mainProduct.setFinalId(tool.get().useOn(mainProduct));
+                            numOfToolsLeft.decrementAndGet();
+                            warehouse.releaseTool(tool.get());
                         }
-                        numOfToolsLeft.decrementAndGet();
-                        warehouse.releaseTool(tool.get());
                     });
                    // tools.add(tool);
                 }
@@ -89,7 +89,7 @@ public class ManufacturingTask extends Task<Product> {
 //                    warehouse.releaseTool(tools.get(i.get()).get());
 //                }
                 //product is assembled
-                while(numOfToolsLeft.get()!=0);
+                while(numOfToolsLeft.get()>0);
                 complete(mainProduct);
             });
         }

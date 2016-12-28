@@ -11,6 +11,7 @@ import bgu.spl.a2.sim.tasks.ManufacturingTask;
 import bgu.spl.a2.sim.tools.*;
 import com.google.gson.*;
 
+
 import java.io.*;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -58,7 +59,12 @@ public class Simulator {
 
         }
 
-
+        try {
+            pool.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("finished");
         return results;
     }
 
@@ -123,7 +129,7 @@ public class Simulator {
                 String partName=partsObj.getAsString();
                 partsToAdd[j]=partName;
             }
-            warehouse.addPlan(new ManufactoringPlan(product,toolsToAdd,partsToAdd));
+            warehouse.addPlan(new ManufactoringPlan(product,partsToAdd,toolsToAdd));
         }
     }
 
@@ -153,44 +159,50 @@ public class Simulator {
     }
 
     //TODO:replace void to int
-    public static void main(String [] args){
+    public static void main(String [] args) {
 
         try {
 
             Gson gson = new Gson();
 
-            String fileName="simpleTest.json";
+            String fileName = "simulation.json";
 
-            JsonParser jsonParser=new JsonParser();
-            JsonObject jsonObject=(JsonObject) jsonParser.parse(new FileReader(fileName));
-            int numOfThreads=gson.fromJson((JsonPrimitive)jsonObject.get("threads"),int.class);
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
+            int numOfThreads = gson.fromJson((JsonPrimitive) jsonObject.get("threads"), int.class);
 
-            JsonArray toolsArray=((JsonArray)jsonObject.get("tools"));
+            JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
             initTools(toolsArray);
 
-            JsonArray plansArray=((JsonArray)jsonObject.get("plans"));
+            JsonArray plansArray = ((JsonArray) jsonObject.get("plans"));
             initPlans(plansArray);
 
-            JsonArray wavesArray=((JsonArray)jsonObject.get("waves"));
+            JsonArray wavesArray = ((JsonArray) jsonObject.get("waves"));
             initWaves(wavesArray);
             System.out.print("");
 
-            Simulator simulator=new Simulator();
-            WorkStealingThreadPool pool=new WorkStealingThreadPool(numOfThreads);
+            Simulator simulator = new Simulator();
+            WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
             simulator.attachWorkStealingThreadPool(pool);
 
-            ConcurrentLinkedQueue<Product> result=simulator.start();
-            FileOutputStream fout = new FileOutputStream("result.ser");
-            ObjectOutputStream oos = new ObjectOutputStream(fout);
-            oos.writeObject(result);
+            ConcurrentLinkedQueue<Product> result = simulator.start();
+
+            for (Product p:result            ) {
+                System.out.println("Name: "+ p.getName());
+                System.out.println("FinalID: "+p.getFinalId());
+            }
+//            FileOutputStream fout = new FileOutputStream("result.ser");
+//            ObjectOutputStream oos = new ObjectOutputStream(fout);
+//            oos.writeObject(result);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 //        return 0;
+        }
     }
 
 

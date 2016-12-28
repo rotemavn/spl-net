@@ -48,9 +48,9 @@ public class Product {
      * final ID is the ID the product received as the sum of all UseOn();
      */
     public long getFinalId(){
-        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
-            _finalId += productsNeeded.get(i.get()).getFinalId();
-        }
+//        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
+//            _finalId += productsNeeded.get(i.get()).getFinalId();
+//        }
         return _finalId;
     }
 

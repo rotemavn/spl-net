@@ -26,7 +26,7 @@ public class NextPrimeHammer implements Tool{
     public long useOn(Product p) {
         long value=0;
         for(Product part : p.getParts()){
-            value+=Math.abs(func(part.getStartId()));
+            value+=Math.abs(func(part.getFinalId()));
 
         }
         return value;
