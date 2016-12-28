@@ -156,7 +156,7 @@ public class Warehouse {
     private void addNextPrimeHammer(int qty){
         for(int i=0; i<qty; i++){
             NextPrimeHammer tool=new NextPrimeHammer();
-            toolsLists.elementAt(1).add(tool);
+            toolsLists.elementAt(2).add(tool);
         }
     }
 
@@ -168,7 +168,7 @@ public class Warehouse {
     private void addRandomSumPliers(int qty){
         for(int i=0; i<qty; i++){
             RandomSumPliers tool=new RandomSumPliers();
-            toolsLists.elementAt(2).add(tool);
+            toolsLists.elementAt(1).add(tool);
         }
     }
 

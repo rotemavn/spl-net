@@ -10,6 +10,7 @@ import bgu.spl.a2.sim.tools.Tool;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by itama_000 on 12/26/2016.
@@ -48,6 +49,7 @@ public class ManufacturingTask extends Task<Product> {
             }
             //when the sub products are finished to assemble, the current main product is ready to assemble
             whenResolved(tasks, () -> {
+                AtomicLong toAdd = new AtomicLong(0);
                 // acquiring the tools needed
                 String[] toolsNeeded = plan.getTools();
                 numOfToolsLeft.set(toolsNeeded.length);
@@ -56,11 +58,10 @@ public class ManufacturingTask extends Task<Product> {
                 for (AtomicInteger i = new AtomicInteger(0); i.get() < toolsNeeded.length; i.incrementAndGet()) {
                     Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[i.get()]);
                     tool.whenResolved(()->{
-                        for(int j =0;j<tasks.size();j++){
-                            mainProduct.setFinalId(tool.get().useOn(mainProduct));
+                            toAdd.addAndGet(tool.get().useOn(mainProduct));
+                           // mainProduct.setFinalId(tool.get().useOn(mainProduct));
                             numOfToolsLeft.decrementAndGet();
                             warehouse.releaseTool(tool.get());
-                        }
                     });
                    // tools.add(tool);
                 }
@@ -90,6 +91,7 @@ public class ManufacturingTask extends Task<Product> {
 //                }
                 //product is assembled
                 while(numOfToolsLeft.get()>0);
+                mainProduct.setFinalId(toAdd.get());
                 complete(mainProduct);
             });
         }

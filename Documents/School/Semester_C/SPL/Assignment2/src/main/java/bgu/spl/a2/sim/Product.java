@@ -47,7 +47,7 @@ public class Product {
      * @return The product final ID as a long.
      * final ID is the ID the product received as the sum of all UseOn();
      */
-    public long getFinalId(){
+    public synchronized long getFinalId(){
 //        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
 //            _finalId += productsNeeded.get(i.get()).getFinalId();
 //        }
@@ -67,7 +67,7 @@ public class Product {
         productsNeeded.add(p);
     }
 
-    public void setFinalId(long toAdd){
+    public synchronized void setFinalId(long toAdd){
         _finalId+= toAdd;
     }
 
