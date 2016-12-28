@@ -41,14 +41,19 @@ public class Simulator {
             try {
                 Vector<ManufacturingTask> currentWave = waves.peek();
                 CountDownLatch latch=new CountDownLatch(currentWave.size());
+                Product[] manufactured=new Product[currentWave.size()];
                 for (ManufacturingTask task: currentWave) {
                     pool.submit(task);
                     task.getResult().whenResolved(() -> {
+                        manufactured[currentWave.indexOf(task)]=task.getResult().get();
                         latch.countDown();
-                        results.add(task.getResult().get());
                     });
                 }
                 latch.await();
+
+                for(int i=0; i<manufactured.length ;i++){
+                    results.add(manufactured[i]);
+                }
                 waves.poll();
 
             }
