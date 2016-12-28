@@ -44,7 +44,7 @@ public class Processor implements Runnable {
 
     @Override
     public void run() {
-        while(!Thread.currentThread().isInterrupted()&&shouldRun) {
+        while(!Thread.currentThread().isInterrupted()&&shouldRun && !pool.interrupted) {
             int vm = pool.versionMonitor.getVersion();
             try{
                 Task<?> currTask;

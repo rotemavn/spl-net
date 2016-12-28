@@ -22,6 +22,7 @@ public class WorkStealingThreadPool {
     private final Thread[] processors;
     private final int numOfProcessors;
     protected final VersionMonitor versionMonitor;
+    protected boolean interrupted=false;
     private boolean hasTasks=false;
 
     /**
@@ -98,14 +99,17 @@ public class WorkStealingThreadPool {
      * shutdown the queue is itself a processor of this queue
      */
     public void shutdown() throws InterruptedException {
+        versionMonitor.inc();
+        interrupted=true;
         for (Thread t:processors) {
 
             if(t.equals(Thread.currentThread()))
                 throw new UnsupportedOperationException();
             t.interrupt();
         }
-        queues.clear();
-
+        for (Thread t:processors) {
+            t.join();
+        }
 
     }
 
