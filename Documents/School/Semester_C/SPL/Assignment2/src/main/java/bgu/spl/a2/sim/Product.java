@@ -64,7 +64,7 @@ public class Product {
      * Add a new part to the product
      * @param p - part to be added as a Product object
      */
-    public void addPart(Product p){
+    public synchronized void addPart(Product p){
         productsNeeded.add(p);
     }
 
@@ -76,7 +76,7 @@ public class Product {
     }
 
     public String toString(){
-        String res="ProductName: "+ _name+" Product Id = "+_finalId+"\n";
+        String res="ProductName: "+ _name+"  Product Id = "+_finalId+"\n";
         res+="PartsList {\n";
         for(Product p:getParts()){
             res+=p.toString();

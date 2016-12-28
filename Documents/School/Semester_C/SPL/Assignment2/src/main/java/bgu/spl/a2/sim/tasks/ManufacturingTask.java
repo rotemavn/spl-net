@@ -44,8 +44,11 @@ public class ManufacturingTask extends Task<Product> {
                 mainProduct.addPart(subProduct); //add the sub part to tha current main product
                 ManufactoringPlan input = warehouse.getPlan(partsNeeded[i.get()]); // the plan of the sub-product
                 Task<Product> subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
-                tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
-                // product will perform the necessary action
+                synchronized (tasks) {
+                    tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
+                    // product will perform the necessary action
+
+                }
                 spawn(subProductAssemble); // spawning the new task to the processor
             }
             //when the sub products are finished to assemble, the current main product is ready to assemble
@@ -104,4 +107,6 @@ public class ManufacturingTask extends Task<Product> {
     public String toString(){
         return "Manufacturing Task";
     }
+
+
 }

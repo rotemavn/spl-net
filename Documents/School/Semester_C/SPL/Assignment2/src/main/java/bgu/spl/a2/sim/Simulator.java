@@ -179,32 +179,37 @@ public class Simulator {
 
     //TODO:replace void to int
     public static void main(String [] args) {
-
         try {
+            for(int i=0; i<50; i++) {
+                Gson gson = new Gson();
 
-            Gson gson = new Gson();
+                String fileName = "simulation.json";
 
-            String fileName = "simulation.json";
+                JsonParser jsonParser = new JsonParser();
+                JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
+                int numOfThreads = gson.fromJson((JsonPrimitive) jsonObject.get("threads"), int.class);
 
-            JsonParser jsonParser = new JsonParser();
-            JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
-            int numOfThreads = gson.fromJson((JsonPrimitive) jsonObject.get("threads"), int.class);
+                JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
+                initTools(toolsArray);
 
-            JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
-            initTools(toolsArray);
+                JsonArray plansArray = ((JsonArray) jsonObject.get("plans"));
+                initPlans(plansArray);
 
-            JsonArray plansArray = ((JsonArray) jsonObject.get("plans"));
-            initPlans(plansArray);
+                JsonArray wavesArray = ((JsonArray) jsonObject.get("waves"));
+                initWaves(wavesArray);
+                System.out.print("");
 
-            JsonArray wavesArray = ((JsonArray) jsonObject.get("waves"));
-            initWaves(wavesArray);
-            System.out.print("");
+                Simulator simulator = new Simulator();
+                WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
+                simulator.attachWorkStealingThreadPool(pool);
 
-            Simulator simulator = new Simulator();
-            WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
-            simulator.attachWorkStealingThreadPool(pool);
-
-            writeToFile(simulator.start());
+//                writeToFile(simulator.start());
+                ConcurrentLinkedQueue<Product> result=simulator.start();
+                for (Product product:result) {
+                    String ans=product.toString();
+                    System.out.println(ans);
+                }
+            }
 
 
 
@@ -212,8 +217,10 @@ public class Simulator {
             e.printStackTrace();
         }
 
+
 //        return 0;
         }
+
     }
 
 
