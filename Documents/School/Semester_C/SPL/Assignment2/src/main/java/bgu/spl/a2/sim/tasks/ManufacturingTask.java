@@ -14,14 +14,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by itama_000 on 12/26/2016.
  */
-public class manufactoringTask extends Task<Product> {
+public class ManufacturingTask extends Task<Product> {
 
     private Warehouse warehouse;
     private ManufactoringPlan plan;
     private Vector<Task<Product>> tasks;
     private Product mainProduct;
 
-    public manufactoringTask(Product mainProduct, Warehouse warehouse, ManufactoringPlan plan) {
+    public ManufacturingTask(Product mainProduct, Warehouse warehouse, ManufactoringPlan plan) {
         this.mainProduct = mainProduct;
         this.plan = plan;
         this.warehouse = warehouse;
@@ -29,7 +29,8 @@ public class manufactoringTask extends Task<Product> {
     }
 
     @Override
-    protected void start() {
+    public void start() {
+        System.out.println("manufacturing start");
         String[] partsNeeded = plan.getParts();
 
         if (partsNeeded.length == 0) {
@@ -40,7 +41,7 @@ public class manufactoringTask extends Task<Product> {
                 Product subProduct = new Product(mainProduct.getStartId() + 1, partsNeeded[i.get()]);
                 mainProduct.addPart(subProduct); //add the sub part to tha current main product
                 ManufactoringPlan input = warehouse.getPlan(partsNeeded[i.get()]); // the plan of the sub-product
-                Task<Product> subProductAssemble = new manufactoringTask(subProduct, warehouse, input);
+                Task<Product> subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
                 tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
                 // product will perform the necessary action
                 spawn(subProductAssemble); // spawning the new task to the processor
@@ -83,5 +84,9 @@ public class manufactoringTask extends Task<Product> {
         }
 
 
+    }
+
+    public String toString(){
+        return "Manufacturing Task";
     }
 }

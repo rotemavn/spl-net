@@ -24,24 +24,33 @@ public class NextPrimeHammer implements Tool{
 
     @Override
     public long useOn(Product p) {
-        long ans = 0;
-        ans = findNextPrime(p.getStartId());
-        return ans;
+        long value=0;
+        for(Product part : p.getParts()){
+            value+=Math.abs(func(part.getStartId()));
+
+        }
+        return value;
     }
 
-    private long findNextPrime(long num){
-        while(true){
-            boolean isPrime = true;
-            num++;
-            long sqr = (long)Math.sqrt(num);
-            for(AtomicLong i= new AtomicLong(2); i.get()<=sqr; i.incrementAndGet()){
-                if((num%i.get())==0){
-                    isPrime = false;
-                    break;
-                }
-            }
-            if(isPrime)
-                return num;
+    public long func(long id) {
+
+        long v =id + 1;
+        while (!isPrime(v)) {
+            v++;
         }
+
+        return v;
+    }
+    private boolean isPrime(long value) {
+        if(value < 2) return false;
+        if(value == 2) return true;
+        long sq = (long) Math.sqrt(value);
+        for (long i = 2; i <= sq; i++) {
+            if (value % i == 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

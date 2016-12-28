@@ -1,0 +1,36 @@
+{
+    "threads": 3,
+    
+    "tools": [
+        {
+            "tool": "gs-driver",
+            "qty": 35
+        },
+        {
+            "tool": "np-hammer",
+            "qty": 17
+        },
+        {
+            "tool": "rs-pliers",
+            "qty": 23
+        }
+    ],
+    "plans": [
+        {
+            "product": "yphone30",
+            "tools": ["gs-driver", "rs-pliers"],
+            "parts": ["5'-screen", "round-button"]
+        }
+    ],
+    "waves": [
+        [
+            {
+                "product": "yphone30",
+                "qty": 2,
+                "startId": 50123450
+            }
+
+        ]
+    ]
+	
+}

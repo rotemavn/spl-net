@@ -1,5 +1,6 @@
 package bgu.spl.a2.sim;
 
+import bgu.spl.a2.Task;
 import bgu.spl.a2.sim.tools.*;
 import bgu.spl.a2.sim.conf.ManufactoringPlan;
 import bgu.spl.a2.Deferred;
@@ -20,20 +21,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Warehouse {
     private final Vector<String> indexMapping;
     private final Vector<ConcurrentLinkedQueue> toolsLists;
+    private final Vector<ConcurrentLinkedQueue> deferredLists;
     private final ConcurrentHashMap<String,ManufactoringPlan> plans;
     /**
      * Constructor
      */
     public Warehouse(){
         indexMapping=new Vector<String>();
-        indexMapping.add(0,"GcdScrewDriver");
-        indexMapping.add(1,"NextPrimeHammer");
-        indexMapping.add(2,"RandomSumPliers");
+        indexMapping.add(0,"gs-driver");
+        indexMapping.add(1,"rs-pliers");
+        indexMapping.add(2,"rs-pliers");
 
         toolsLists=new Vector<>();
         toolsLists.add(0,new ConcurrentLinkedQueue<GcdScrewDriver>());
         toolsLists.add(1,new ConcurrentLinkedQueue<NextPrimeHammer>());
         toolsLists.add(2,new ConcurrentLinkedQueue<RandomSumPliers>());
+
+        deferredLists=new Vector<>();
+        deferredLists.add(0,new ConcurrentLinkedQueue<Deferred>());
+        deferredLists.add(1,new ConcurrentLinkedQueue<Deferred>());
+        deferredLists.add(2,new ConcurrentLinkedQueue<Deferred>());
 
         plans=new ConcurrentHashMap<>();
 
@@ -46,15 +53,46 @@ public class Warehouse {
      * @param type - string describing the required tool
      * @return a deferred promise for the  requested tool
      */
-    public Deferred<Tool> acquireTool(String type){
-        return null;
+    public synchronized Deferred<Tool> acquireTool(String type){
+        System.out.println("aquire tool");
+        Deferred<Tool> deferred=new Deferred<>();
+        int index=indexMapping.indexOf(type);
+
+        //if the tool exists in the warehouse then resolve immediately
+        if(!toolsLists.elementAt(index).isEmpty()){
+            Tool tool = (Tool) toolsLists.elementAt(index).poll();
+            deferred.resolve(tool);
+        }
+
+        //if there aren't any available tools in the warehouse
+        else {
+            deferredLists.elementAt(index).add(deferred);
+        }
+
+        return deferred;
     }
 
     /**
      * Tool return procedure - releases a tool which becomes available in the warehouse upon completion.
      * @param tool - The tool to be returned
      */
-    public void releaseTool(Tool tool){}
+    public void releaseTool(Tool tool){
+        System.out.println("release tool");
+        String toolName=tool.getType();
+        int index=indexMapping.indexOf(toolName);
+
+        //if there are deferred waiting for this type of tool poll a deferred and resolve it
+        if(!deferredLists.elementAt(index).isEmpty()){
+            Deferred<Tool> deferred= (Deferred<Tool>) deferredLists.elementAt(index).poll();
+            deferred.resolve(tool);
+        }
+
+        //if there are no tools required by deferres then just add them to the list
+        else{
+            toolsLists.elementAt(index).add(tool);
+        }
+
+    }
 
 
     /**
