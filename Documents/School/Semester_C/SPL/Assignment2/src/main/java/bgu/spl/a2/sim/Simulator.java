@@ -49,12 +49,10 @@ public class Simulator {
                     });
                 }
                 latch.await();
-
-                while (latch.getCount()>0);
                 waves.poll();
 
             }
-            catch (NullPointerException e){}
+
             catch (InterruptedException e) {}
 
         }
@@ -64,7 +62,6 @@ public class Simulator {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("finished");
         return results;
     }
 
@@ -140,6 +137,7 @@ public class Simulator {
     private static void initWaves(JsonArray wavesArray){
         for(int i=0; i<wavesArray.size(); i++){
             JsonArray wave=(JsonArray)wavesArray.get(i);
+            Vector<ManufacturingTask> waveVector=new Vector<>();
             for(int j=0; j<wave.size(); j++){
                 JsonObject obj=(JsonObject)wave.get(j);
                 String nameOfProduct=obj.get("product").getAsString();
@@ -147,14 +145,30 @@ public class Simulator {
                 int qty=obj.get("qty").getAsInt();
                 long startID=obj.get("startId").getAsLong();
 
-                Vector<ManufacturingTask> waveVector=new Vector<>();
+
                 for(int x=0; x<qty; x++){
                     Product product=new Product(startID+x,nameOfProduct);
                     waveVector.add(new ManufacturingTask(product,warehouse,plan));
                 }
-                waves.add(waveVector);
-            }
 
+            }
+            waves.add(waveVector);
+
+        }
+    }
+
+    protected static void writeToFile(ConcurrentLinkedQueue<Product> result){
+        try {
+            FileOutputStream fout = new FileOutputStream("result.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            for (Product product:result) {
+                String ans=product.toString();
+                oos.writeObject(ans+"\n");
+            }
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -185,21 +199,13 @@ public class Simulator {
             WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
             simulator.attachWorkStealingThreadPool(pool);
 
-            ConcurrentLinkedQueue<Product> result = simulator.start();
+            writeToFile(simulator.start());
 
-            for (Product p:result            ) {
-                System.out.println("Name: "+ p.getName());
-                System.out.println("FinalID: "+p.getFinalId());
-            }
-//            FileOutputStream fout = new FileOutputStream("result.ser");
-//            ObjectOutputStream oos = new ObjectOutputStream(fout);
-//            oos.writeObject(result);
+
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        }
 
 //        return 0;
         }
@@ -208,4 +214,4 @@ public class Simulator {
 
 
 
-}
+

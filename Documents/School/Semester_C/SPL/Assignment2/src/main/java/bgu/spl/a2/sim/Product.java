@@ -71,6 +71,16 @@ public class Product {
         _finalId+= toAdd;
     }
 
+    public String toString(){
+        String res="ProductName: "+ _name+" Product Id = "+_finalId+"\n";
+        res+="PartsList {\n";
+        for(Product p:getParts()){
+            res+=p.toString();
+        }
+        res+="}\n";
+        return res;
+    }
+
 
 
 
