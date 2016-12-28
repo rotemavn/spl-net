@@ -17,11 +17,12 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ManufacturingTask extends Task<Product> {
 
-    private Warehouse warehouse;
-    private ManufactoringPlan plan;
-    private Vector<Task<Product>> tasks;
-    private Product mainProduct;
+    private final Warehouse warehouse;
+    private final ManufactoringPlan plan;
+    private final Vector<Task<Product>> tasks;
+    private final Product mainProduct;
     private AtomicInteger numOfToolsLeft = new AtomicInteger(0);
+
     public ManufacturingTask(Product mainProduct, Warehouse warehouse, ManufactoringPlan plan) {
         this.mainProduct = mainProduct;
         this.plan = plan;
@@ -31,7 +32,7 @@ public class ManufacturingTask extends Task<Product> {
 
     @Override
     public void start() {
-        String[] partsNeeded = plan.getParts();
+        final String[] partsNeeded = plan.getParts();
 
         if (partsNeeded.length == 0) {
 
@@ -53,18 +54,17 @@ public class ManufacturingTask extends Task<Product> {
                 // acquiring the tools needed
                 String[] toolsNeeded = plan.getTools();
                 numOfToolsLeft.set(toolsNeeded.length);
-              //  Vector<Deferred<Tool>> tools = new Vector<>();
                 // acquiring the tools needed according to the product plan
-                for (AtomicInteger i = new AtomicInteger(0); i.get() < toolsNeeded.length; i.incrementAndGet()) {
-                    Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[i.get()]);
-                    tool.whenResolved(()->{
+                    for (AtomicInteger j = new AtomicInteger(0); j.get() < toolsNeeded.length; j.incrementAndGet()) {
+                        Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[j.get()]);
+                        tool.whenResolved(() -> {
                             toAdd.addAndGet(tool.get().useOn(mainProduct));
-                           // mainProduct.setFinalId(tool.get().useOn(mainProduct));
+                            // mainProduct.setFinalId(tool.get().useOn(mainProduct));
                             numOfToolsLeft.decrementAndGet();
                             warehouse.releaseTool(tool.get());
-                    });
-                   // tools.add(tool);
-                }
+                        });
+                        // tools.add(tool);
+                    }
 
                 //verifying all the tools acquired are indeed resolved
 //                boolean allResolved = true;
@@ -91,7 +91,9 @@ public class ManufacturingTask extends Task<Product> {
 //                }
                 //product is assembled
                 while(numOfToolsLeft.get()>0);
-                mainProduct.setFinalId(toAdd.get());
+                    synchronized (mainProduct) {
+                        mainProduct.setFinalId(toAdd.get());
+                    }
                 complete(mainProduct);
             });
         }

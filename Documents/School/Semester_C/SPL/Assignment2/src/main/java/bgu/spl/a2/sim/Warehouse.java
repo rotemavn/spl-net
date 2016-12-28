@@ -1,6 +1,4 @@
 package bgu.spl.a2.sim;
-
-import bgu.spl.a2.Task;
 import bgu.spl.a2.sim.tools.*;
 import bgu.spl.a2.sim.conf.ManufactoringPlan;
 import bgu.spl.a2.Deferred;
@@ -89,15 +87,11 @@ public class Warehouse {
                 Deferred<Tool> deferred = deferredLists.elementAt(index).poll();
                 deferred.resolve(tool);
             }
-
             //if there are no tools required by deferres then just add them to the list
             else {
                 toolsLists.elementAt(index).add(tool);
             }
         }
-
-
-
     }
 
 

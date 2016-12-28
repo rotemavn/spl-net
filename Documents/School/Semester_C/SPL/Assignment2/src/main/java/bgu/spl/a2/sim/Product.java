@@ -15,6 +15,7 @@ public class Product {
     private long _finalId;
     private String _name;
     private List<Product> productsNeeded;
+    private boolean end=false;
 
     /**
      * Constructor
@@ -68,7 +69,10 @@ public class Product {
     }
 
     public synchronized void setFinalId(long toAdd){
-        _finalId+= toAdd;
+        if(!end) {
+            _finalId += toAdd;
+            end=true;
+        }
     }
 
     public String toString(){
