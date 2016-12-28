@@ -58,7 +58,11 @@ public class Simulator {
 
         }
 
-
+        try {
+            pool.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return results;
     }
 

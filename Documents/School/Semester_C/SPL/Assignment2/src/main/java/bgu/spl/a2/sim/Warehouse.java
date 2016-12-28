@@ -58,15 +58,19 @@ public class Warehouse {
         Deferred<Tool> deferred=new Deferred<>();
         int index=indexMapping.indexOf(type);
 
-        //if the tool exists in the warehouse then resolve immediately
-        if(!toolsLists.elementAt(index).isEmpty()){
-            Tool tool = toolsLists.elementAt(index).poll();
-            deferred.resolve(tool);
-        }
+        ConcurrentLinkedQueue<Tool> toolList=toolsLists.elementAt(index);
 
-        //if there aren't any available tools in the warehouse
-        else {
-            deferredLists.elementAt(index).add(deferred);
+        synchronized (toolList) {
+            //if the tool exists in the warehouse then resolve immediately
+            if (!toolsLists.elementAt(index).isEmpty()) {
+                Tool tool = toolsLists.elementAt(index).poll();
+                deferred.resolve(tool);
+            }
+
+            //if there aren't any available tools in the warehouse
+            else {
+                deferredLists.elementAt(index).add(deferred);
+            }
         }
 
         return deferred;
@@ -80,17 +84,22 @@ public class Warehouse {
         System.out.println("release tool");
         String toolName=tool.getType();
         int index=indexMapping.indexOf(toolName);
+        ConcurrentLinkedQueue<Deferred<Tool>> deferList=deferredLists.elementAt(index);
+        synchronized (deferList) {
+            //if there are deferred waiting for this type of tool poll a deferred and resolve it
+            if (!deferredLists.elementAt(index).isEmpty()) {
+                Deferred<Tool> deferred = deferredLists.elementAt(index).poll();
+                deferred.resolve(tool);
+            }
 
-        //if there are deferred waiting for this type of tool poll a deferred and resolve it
-        if(!deferredLists.elementAt(index).isEmpty()){
-            Deferred<Tool> deferred= deferredLists.elementAt(index).poll();
-            deferred.resolve(tool);
+            //if there are no tools required by deferres then just add them to the list
+            else {
+                toolsLists.elementAt(index).add(tool);
+            }
         }
 
-        //if there are no tools required by deferres then just add them to the list
-        else{
-            toolsLists.elementAt(index).add(tool);
-        }
+
+
     }
 
 
