@@ -48,12 +48,6 @@ public class Processor implements Runnable {
             int vm = pool.versionMonitor.getVersion();
             try{
                 Task<?> currTask;
-//                if(!pool.isQueueEmpty(id)) {
-//                    pool.fetchTask(id).handle(this);
-//                }
-//                else if(steal()){
-//                    pool.fetchTask(id).handle(this);
-//                }
                 currTask = pool.fetchTask(id);
                 if(currTask!=null){
                     currTask.handle(this);
@@ -67,9 +61,6 @@ public class Processor implements Runnable {
                 shouldRun=false;
             }
         }
-//        System.out.println("Stopped");
-
-
 
     }
 
@@ -83,32 +74,5 @@ public class Processor implements Runnable {
         }
 
     }
-//
-//    private boolean steal() {
-//        final int numOfProcessors = pool.getNumOfProcessors();
-//        AtomicBoolean stealSuccedded = new AtomicBoolean(false);
-//        AtomicInteger stealAttempts = new AtomicInteger(0);
-//        while (!stealSuccedded.get() && stealAttempts.get() < numOfProcessors) {
-//            int victimID = ((id + stealAttempts.get() + 1) % numOfProcessors);
-//            int numOfTasksStolen = pool.steal(id, victimID);
-//            if (numOfTasksStolen > 0) {
-//                return true;
-//            }
-//            stealAttempts.incrementAndGet();
-//        }
-//        return false;
-//    }
-
-//    protected void suspend(Task<?> task){
-//        if(!pool.isQueueEmpty(id) && !Thread.currentThread().isInterrupted()){
-//            Task t=pool.fetchTask(id);
-//            pool.submitToProcessor(id,task);
-//            t.handle(this);
-//        }
-//        else {
-//            pool.submitToProcessor(id,task);
-//            steal();
-//        }
-//    }
 
 }

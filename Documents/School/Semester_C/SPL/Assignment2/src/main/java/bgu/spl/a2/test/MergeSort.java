@@ -62,26 +62,6 @@ public class MergeSort extends Task<int[]> {
 
 	}
 
-	// public static void mergeSort(int[] inputArray) {
-	// int size = inputArray.length;
-	// if (size < 2)
-	// return;
-	// int mid = size / 2;
-	// int leftSize = mid;
-	// int rightSize = size - mid;
-	// int[] left = new int[leftSize];
-	// int[] right = new int[rightSize];
-	// for (int i = 0; i < mid; i++) {
-	// left[i] = inputArray[i];
-	//
-	// }
-	// for (int i = mid; i < size; i++) {
-	// right[i - mid] = inputArray[i];
-	// }
-	// mergeSort(left);
-	// mergeSort(right);
-	// merge(left, right, inputArray);
-	// }
 
 	public static void merge(int[] left, int[] right, int[] arr) {
 		try{
@@ -119,7 +99,7 @@ public class MergeSort extends Task<int[]> {
 
 	public static void main(String[] args) throws InterruptedException {
 		for (int i = 0; i <20000; i++) {
-			//System.out.println("Attepmt No. "+i);
+
 			WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
 			int n = 400; //you may check on different number of elements if  you like
 			int[] array = new Random().ints(n).toArray();

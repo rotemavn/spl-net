@@ -67,35 +67,8 @@ public abstract class Task<R> {
 			started = true;
 		}
 
-//		for (int i = 0; i < tasks.size(); i++) {
-//			if (tasks.get(i).getResult().isResolved()) {
-//				tasks.remove(i);
-//				tasksLeft.decrementAndGet();
-//			}
-//		}
-
-		//	if (tasksLeft.get()>0) {
-		//		handler.suspend(this);
-		//	} else {
 		if (callback != null && tasksLeft.get()==0)
 			callback.run();
-		//}
-
-		// while (tasksLeft.get() > 0) { // while the currents tasks still have
-		// tasks
-		// // which it depends on
-		// for (int i = 0; i < tasks.size(); i++) {
-		// if (tasks.get(i).getResult().isResolved()) {
-		// tasks.remove(i);
-		// tasksLeft.decrementAndGet();
-		// } else { // if there is still tasks needed to be complete
-		// handler.suspend(this);
-		// }
-		// }
-		// } // all the tasks the current task needed to be resolved are
-		// // indeed resolved
-		// if (callback!=null)
-		// callback.run();
 
 	}
 
@@ -125,7 +98,6 @@ public abstract class Task<R> {
 		tasksLeft.set(tasks.size());
 		this.callback = callback;
 		for (Task<?> t : tasks) {
-			//this.tasks.add(t);
 			t.getResult().whenResolved(()->{
 				if(tasksLeft.decrementAndGet()==0){
 					handler.scheduleTask(this);
