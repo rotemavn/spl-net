@@ -22,16 +22,28 @@ public class VersionMonitor {
 
     AtomicInteger currentVersion=new AtomicInteger(0);
 
+    /**
+     * The function returns the current version
+     * @return the currrent version
+     */
     public synchronized int getVersion() {
         return currentVersion.get();
     }
 
+    /**
+     * The function increments the current version and notifies all threads
+     */
     public synchronized void inc() {
         currentVersion.getAndIncrement();
         notifyAll();
 
     }
 
+    /**
+     * As long as the version isn't modified, all threads must sleep
+     * @param version a version to compare to
+     * @throws InterruptedException when the version changes
+     */
     public synchronized void await(int version) throws InterruptedException {
         while (currentVersion.get() == version) {
             wait();

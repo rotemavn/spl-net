@@ -4,9 +4,6 @@ import bgu.spl.a2.sim.Product;
 
 import java.math.BigInteger;
 
-/**
- * Created by rOTEM on 26-Dec-16.
- */
 public class GcdScrewDriver implements Tool{
 
     private String _name;
@@ -31,13 +28,24 @@ public class GcdScrewDriver implements Tool{
         return value;
     }
 
+    /**
+     *
+     * @param id current ID of the product
+     * @return the calculation of GcdScrewDriver
+     */
     public long func(long id){
         BigInteger b1 = BigInteger.valueOf(id);
         BigInteger b2 = BigInteger.valueOf(reverse(id));
-        long value= (b1.gcd(b2)).longValue();
-        return value;
+        return (b1.gcd(b2)).longValue();
+
     }
-    public long reverse(long n){
+
+    /**
+     *
+     * @param n numeric value
+     * @return a new numeric value with the reversed digits of n
+     */
+    private long reverse(long n){
         long reverse=0;
         while( n != 0 ){
             reverse = reverse * 10;

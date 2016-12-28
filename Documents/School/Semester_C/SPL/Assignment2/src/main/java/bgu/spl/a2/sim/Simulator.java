@@ -177,17 +177,14 @@ public class Simulator {
         }
     }
 
-    //TODO:replace void to int
     public static void main(String [] args) {
         try {
             for(int i=0; i<50; i++) {
                 Gson gson = new Gson();
-
-                String fileName = "simulation.json";
-
+                String fileName = args[0];
                 JsonParser jsonParser = new JsonParser();
                 JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
-                int numOfThreads = gson.fromJson((JsonPrimitive) jsonObject.get("threads"), int.class);
+                int numOfThreads = gson.fromJson(jsonObject.get("threads"), int.class);
 
                 JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
                 initTools(toolsArray);
@@ -199,16 +196,10 @@ public class Simulator {
                 initWaves(wavesArray);
                 System.out.print("");
 
-                Simulator simulator = new Simulator();
                 WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
-                simulator.attachWorkStealingThreadPool(pool);
+                attachWorkStealingThreadPool(pool);
 
-//                writeToFile(simulator.start());
-                ConcurrentLinkedQueue<Product> result=simulator.start();
-                for (Product product:result) {
-                    String ans=product.toString();
-                    System.out.println(ans);
-                }
+                writeToFile(start());
             }
 
 
@@ -217,8 +208,6 @@ public class Simulator {
             e.printStackTrace();
         }
 
-
-//        return 0;
         }
 
     }

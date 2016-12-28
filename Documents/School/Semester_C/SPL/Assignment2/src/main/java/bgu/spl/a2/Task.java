@@ -22,12 +22,6 @@ public abstract class Task<R> {
 	private Deferred<R> deferred = new Deferred<R>();
 
 	private boolean started;
-	protected Vector<Task<?>> tasks = new Vector<>(); // vector containing all
-	// the
-	// tasks which the
-	// current
-	// task is waiting for
-	// completion
 	private Runnable callback; // once all the derived tasks are resolved we
 	// will activate the run method of the pro
 	private AtomicInteger tasksLeft = new AtomicInteger(0); // integer made in

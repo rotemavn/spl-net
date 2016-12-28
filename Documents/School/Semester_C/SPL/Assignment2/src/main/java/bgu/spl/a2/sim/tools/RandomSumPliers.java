@@ -6,9 +6,6 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Created by rOTEM on 26-Dec-16.
- */
 public class RandomSumPliers implements Tool {
 
     private String _name;
@@ -33,6 +30,11 @@ public class RandomSumPliers implements Tool {
         return value;
     }
 
+    /**
+     *
+     * @param id current ID of the product
+     * @return the calculation of RandomSumPliers
+     */
     public long func(long id){
         Random r = new Random(id);
         long  sum = 0;

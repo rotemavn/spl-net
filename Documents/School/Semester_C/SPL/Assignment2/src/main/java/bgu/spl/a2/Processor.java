@@ -42,6 +42,10 @@ public class Processor implements Runnable {
 
     }
 
+    /**
+     * as long as the thread is not interrupted the processor should continue to fetch tasks from
+     * it's queue. If the processors' queue is empty then the processor would steal tasks from other processors
+     */
     @Override
     public void run() {
         while(!Thread.currentThread().isInterrupted()&&shouldRun && !pool.interrupted) {

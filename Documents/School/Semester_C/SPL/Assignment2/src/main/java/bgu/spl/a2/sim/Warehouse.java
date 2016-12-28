@@ -25,20 +25,20 @@ public class Warehouse {
      * Constructor
      */
     public Warehouse(){
-        indexMapping=new Vector<String>();
+        indexMapping=new Vector<>();
         indexMapping.add(0,"gs-driver");
         indexMapping.add(1,"rs-pliers");
         indexMapping.add(2,"np-hammer");
 
         toolsLists=new Vector<>();
-        toolsLists.add(0,new ConcurrentLinkedQueue<Tool>());
-        toolsLists.add(1,new ConcurrentLinkedQueue<Tool>());
-        toolsLists.add(2,new ConcurrentLinkedQueue<Tool>());
+        toolsLists.add(0,new ConcurrentLinkedQueue<>());
+        toolsLists.add(1,new ConcurrentLinkedQueue<>());
+        toolsLists.add(2,new ConcurrentLinkedQueue<>());
 
         deferredLists=new Vector<>();
-        deferredLists.add(0,new ConcurrentLinkedQueue<Deferred<Tool>>());
-        deferredLists.add(1,new ConcurrentLinkedQueue<Deferred<Tool>>());
-        deferredLists.add(2,new ConcurrentLinkedQueue<Deferred<Tool>>());
+        deferredLists.add(0,new ConcurrentLinkedQueue<>());
+        deferredLists.add(1,new ConcurrentLinkedQueue<>());
+        deferredLists.add(2,new ConcurrentLinkedQueue<>());
 
         plans=new ConcurrentHashMap<>();
 
@@ -51,7 +51,7 @@ public class Warehouse {
      * @param type - string describing the required tool
      * @return a deferred promise for the  requested tool
      */
-    public synchronized Deferred<Tool> acquireTool(String type){
+    public  Deferred<Tool> acquireTool(String type){
         Deferred<Tool> deferred=new Deferred<>();
         int index=indexMapping.indexOf(type);
 
@@ -77,7 +77,7 @@ public class Warehouse {
      * Tool return procedure - releases a tool which becomes available in the warehouse upon completion.
      * @param tool - The tool to be returned
      */
-    public synchronized void releaseTool(Tool tool){
+    public  void releaseTool(Tool tool){
         String toolName=tool.getType();
         int index=indexMapping.indexOf(toolName);
         ConcurrentLinkedQueue<Deferred<Tool>> deferList=deferredLists.elementAt(index);

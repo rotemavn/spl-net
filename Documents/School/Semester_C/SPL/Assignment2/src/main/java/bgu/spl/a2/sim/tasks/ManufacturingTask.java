@@ -12,9 +12,6 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Created by itama_000 on 12/26/2016.
- */
 public class ManufacturingTask extends Task<Product> {
 
     private final Warehouse warehouse;
@@ -30,6 +27,9 @@ public class ManufacturingTask extends Task<Product> {
         tasks = new Vector<>();
     }
 
+    /**
+     * The function initiates the manufacturing task process
+     */
     @Override
     public void start() {
         final String[] partsNeeded = plan.getParts();
@@ -40,14 +40,14 @@ public class ManufacturingTask extends Task<Product> {
         } else {
             //defining the sub products, add them to the main product, and creating tasks for them
             for (AtomicInteger i = new AtomicInteger(0); i.get() < partsNeeded.length; i.incrementAndGet()) {
-                Product subProduct = new Product(mainProduct.getStartId() + 1, partsNeeded[i.get()]);
+                final long id=mainProduct.getStartId();
+                Product subProduct = new Product(id + 1, partsNeeded[i.get()]);
                 mainProduct.addPart(subProduct); //add the sub part to tha current main product
                 ManufactoringPlan input = warehouse.getPlan(partsNeeded[i.get()]); // the plan of the sub-product
                 Task<Product> subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
                 synchronized (tasks) {
                     tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
                     // product will perform the necessary action
-
                 }
                 spawn(subProductAssemble); // spawning the new task to the processor
             }
@@ -62,51 +62,20 @@ public class ManufacturingTask extends Task<Product> {
                         Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[j.get()]);
                         tool.whenResolved(() -> {
                             toAdd.addAndGet(tool.get().useOn(mainProduct));
-                            // mainProduct.setFinalId(tool.get().useOn(mainProduct));
                             numOfToolsLeft.decrementAndGet();
                             warehouse.releaseTool(tool.get());
                         });
-                        // tools.add(tool);
                     }
-
-                //verifying all the tools acquired are indeed resolved
-//                boolean allResolved = true;
-//                while (allResolved) {
-//                    allResolved = true;
-//                    for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-//                        if (!tools.get(i.get()).isResolved()) {
-//                            allResolved = false;
-//                            break;
-//                        }
-//
-//                    }
-//                }
-//                List<Product> finishedSubProducts = mainProduct.getParts();
-//                //for each tool , activating the useOn function on all sub products
-//                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-//                    for (AtomicInteger j = new AtomicInteger(0); j.get() < finishedSubProducts.size(); j.incrementAndGet()) {
-//                        mainProduct.setFinalId(tools.get(i.get()).get().useOn(finishedSubProducts.get(j.get())));
-//                    }
-//                }
-//                //after assembling the current main product, releasing the tools acquired
-//                for (AtomicInteger i = new AtomicInteger(0); i.get() < tools.size(); i.incrementAndGet()) {
-//                    warehouse.releaseTool(tools.get(i.get()).get());
-//                }
                 //product is assembled
                 while(numOfToolsLeft.get()>0);
-                    synchronized (mainProduct) {
-                        mainProduct.setFinalId(toAdd.get());
-                    }
+                synchronized (mainProduct) {
+                    mainProduct.setFinalId(toAdd.get());
+                }
                 complete(mainProduct);
             });
         }
 
 
     }
-
-    public String toString(){
-        return "Manufacturing Task";
-    }
-
 
 }

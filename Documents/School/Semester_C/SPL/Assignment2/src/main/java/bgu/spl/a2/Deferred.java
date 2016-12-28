@@ -23,14 +23,6 @@ public class Deferred<T> {
 	private T val;
 	private boolean resolved;
 
-	protected void addCallback(Runnable r) {
-		callbacks.add(r);
-	}
-
-	protected Vector<Runnable> getCallbacks() {
-		return new Vector<Runnable>(callbacks);
-	}
-
 	protected int getNumberOFCallbacks() {
 		return callbacks.size();
 	}

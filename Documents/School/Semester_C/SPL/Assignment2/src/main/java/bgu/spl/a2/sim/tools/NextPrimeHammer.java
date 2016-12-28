@@ -32,6 +32,11 @@ public class NextPrimeHammer implements Tool{
         return value;
     }
 
+    /**
+     *
+     * @param id current ID of the product
+     * @return the calculation of NextPrimeHammer
+     */
     public long func(long id) {
 
         long v =id + 1;
@@ -41,6 +46,12 @@ public class NextPrimeHammer implements Tool{
 
         return v;
     }
+
+    /**
+     *
+     * @param value numeric value
+     * @return true if value is a prime number
+     */
     private boolean isPrime(long value) {
         if(value < 2) return false;
         if(value == 2) return true;

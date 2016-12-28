@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Product {
 
-    private long _startId;
+    private final long _startId;
     private long _finalId;
     private String _name;
     private List<Product> productsNeeded;
@@ -48,7 +48,7 @@ public class Product {
      * @return The product final ID as a long.
      * final ID is the ID the product received as the sum of all UseOn();
      */
-    public synchronized long getFinalId(){
+    public long getFinalId(){
 //        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
 //            _finalId += productsNeeded.get(i.get()).getFinalId();
 //        }
@@ -75,8 +75,9 @@ public class Product {
         }
     }
 
+    @Override
     public String toString(){
-        String res="ProductName: "+ _name+"  Product Id = "+_finalId+"\n";
+        String res="ProductName: "+ getName()+"  Product Id = "+_finalId+"\n";
         res+="PartsList {\n";
         for(Product p:getParts()){
             res+=p.toString();

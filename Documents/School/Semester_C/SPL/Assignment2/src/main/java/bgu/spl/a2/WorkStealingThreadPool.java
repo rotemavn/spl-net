@@ -76,7 +76,7 @@ public class WorkStealingThreadPool {
      * The function generates a random integer between 0 and the number of processors
      * @return an integer value
      */
-    protected int getRandomIndex(){
+    private int getRandomIndex(){
         try{
             return ThreadLocalRandom.current().nextInt(numOfProcessors);
 
@@ -147,7 +147,7 @@ public class WorkStealingThreadPool {
      * @param id the ID of a specific processor
      * @return the task at the head of the queue of the processor
      */
-    Task<?> fetchTask(int id){;
+    Task<?> fetchTask(int id){
 
             Task<?> task;
             task = queues.get(id).pollFirst();
@@ -160,18 +160,8 @@ public class WorkStealingThreadPool {
 
     }
 
-    /**
-     * The function checks if a processor's queue is empty
-     * @param id - of the processor
-     * @return true if the queue is empty
-     */
-    boolean isQueueEmpty(int id){
-        return queues.get(id).isEmpty();
 
-    }
-
-
-    Task<?> steal(int thiefID){
+    private Task<?> steal(int thiefID){
         int counter = 0;
         int victimId=(thiefID+1)%numOfProcessors;
         while(thiefID != victimId){
@@ -194,7 +184,7 @@ public class WorkStealingThreadPool {
     }
 
 
-    protected void poolWait(int vm){
+     void poolWait(int vm){
         try{
             versionMonitor.await(vm);
         }
