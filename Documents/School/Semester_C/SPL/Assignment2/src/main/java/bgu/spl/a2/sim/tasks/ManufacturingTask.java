@@ -7,7 +7,7 @@ import bgu.spl.a2.sim.Warehouse;
 import bgu.spl.a2.sim.conf.ManufactoringPlan;
 import bgu.spl.a2.sim.tools.Tool;
 
-import java.util.List;
+
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,15 +41,18 @@ public class ManufacturingTask extends Task<Product> {
             for (AtomicInteger i = new AtomicInteger(0); i.get() < partsNeeded.length; i.incrementAndGet()) {
                 final long id=mainProduct.getStartId()+1;
                 final Product subProduct = new Product(id, partsNeeded[i.get()]);
-                mainProduct.addPart(subProduct); //add the sub part to tha current main product
+                if(mainProduct.getParts().size()<partsNeeded.length) {
+                    mainProduct.addPart(subProduct); //add the sub part to tha current main product
+                }
                 ManufactoringPlan input = warehouse.getPlan(partsNeeded[i.get()]); // the plan of the sub-product
                 ManufacturingTask subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
-                synchronized (tasks) {
+                if(tasks.size()<partsNeeded.length) {
                     tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
                     // product will perform the necessary action
+                    spawn(subProductAssemble); // spawning the new task to the processor
                 }
-                spawn(subProductAssemble); // spawning the new task to the processor
             }
+
             //when the sub products are finished to assemble, the current main product is ready to assemble
             whenResolved(tasks, () -> {
                 AtomicLong toAdd = new AtomicLong(0);
@@ -57,17 +60,17 @@ public class ManufacturingTask extends Task<Product> {
                 String[] toolsNeeded = plan.getTools();
                 numOfToolsLeft.set(toolsNeeded.length);
                 // acquiring the tools needed according to the product plan
-                    for (AtomicInteger j = new AtomicInteger(0); j.get() < toolsNeeded.length; j.incrementAndGet()) {
-                        Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[j.get()]);
-                        tool.whenResolved(() -> {
-                            synchronized (mainProduct) {
-                                final long val = tool.get().useOn(mainProduct);
-                                toAdd.getAndAdd(val);
-                                numOfToolsLeft.decrementAndGet();
-                                warehouse.releaseTool(tool.get());
-                            }
-                        });
-                    }
+                for (AtomicInteger j = new AtomicInteger(0); j.get() < toolsNeeded.length; j.incrementAndGet()) {
+                    Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[j.get()]);
+                    tool.whenResolved(() -> {
+                        synchronized (mainProduct) {
+                            final long val = tool.get().useOn(mainProduct);
+                            toAdd.getAndAdd(val);
+                            numOfToolsLeft.decrementAndGet();
+                            warehouse.releaseTool(tool.get());
+                        }
+                    });
+                }
 
                 //product is assembled
                 while(numOfToolsLeft.get()>0);

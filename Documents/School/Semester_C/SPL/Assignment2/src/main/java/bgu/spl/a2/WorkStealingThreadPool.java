@@ -1,11 +1,8 @@
 package bgu.spl.a2;
 
 import java.util.ArrayList;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * represents a work stealing thread pool - to understand what this class does
@@ -151,7 +148,7 @@ public class WorkStealingThreadPool {
 
             Task<?> task;
             task = queues.get(id).pollFirst();
-            while(queues.get(id).contains(task)){};
+            while(queues.get(id).contains(task));
             if(task==null){
                 return steal(id);
             }
@@ -177,7 +174,7 @@ public class WorkStealingThreadPool {
             }
             if(counter !=0){
                 Task task =queues.get(thiefID).pollFirst();
-                while(queues.get(thiefID).contains(task)){};
+                while(queues.get(thiefID).contains(task));
                 return task;
 
             }

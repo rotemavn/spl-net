@@ -1,11 +1,8 @@
 package bgu.spl.a2.sim;
 
-import bgu.spl.a2.sim.tools.Tool;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -18,7 +15,6 @@ public class Product implements Serializable {
     private String _name;
     private List<Product> productsNeeded;
     private boolean end=false;
-    private long add=0;
 
     /**
      * Constructor
@@ -65,14 +61,13 @@ public class Product implements Serializable {
      * @param p - part to be added as a Product object
      */
     public synchronized void addPart(Product p){
-        productsNeeded.add(p);
+        if(!productsNeeded.contains(p))
+             productsNeeded.add(p);
     }
 
     public void setFinalId(long toAdd){
-        if(add==0)
-            add=toAdd;
         if(!end) {
-            _finalId.getAndAdd(add);
+            _finalId.getAndAdd(toAdd);
             end=true;
         }
     }

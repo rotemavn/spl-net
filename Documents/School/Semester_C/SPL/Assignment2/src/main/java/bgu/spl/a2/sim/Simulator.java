@@ -85,21 +85,21 @@ public class Simulator {
      */
     private static void initTools(JsonArray toolsArray){
         for(int i=0; i<toolsArray.size(); i++){
-           JsonObject obj=(JsonObject)toolsArray.get(i);
-           String name=obj.get("tool").getAsString();
-           int qty=obj.get("qty").getAsInt();
+            JsonObject obj=(JsonObject)toolsArray.get(i);
+            String name=obj.get("tool").getAsString();
+            int qty=obj.get("qty").getAsInt();
 
-           Tool t;
-           if(name.equals("gs-driver")){
-               t=new GcdScrewDriver();
-           }
-           else if(name.equals("rs-pliers")){
-               t=new RandomSumPliers();
-           }
+            Tool t;
+            if(name.equals("gs-driver")){
+                t=new GcdScrewDriver();
+            }
+            else if(name.equals("rs-pliers")){
+                t=new RandomSumPliers();
+            }
 
-           else{
-               t=new NextPrimeHammer();
-           }
+            else{
+                t=new NextPrimeHammer();
+            }
 
             warehouse.addTool(t,qty);
 
@@ -162,14 +162,11 @@ public class Simulator {
         }
     }
 
-    protected static void writeToFile(ConcurrentLinkedQueue<Product> result){
+    private static void writeToFile(ConcurrentLinkedQueue<Product> result){
         try {
             FileOutputStream fout = new FileOutputStream("result.ser");
             ObjectOutputStream oos = new ObjectOutputStream(fout);
-            for (Product product:result) {
-                String ans=product.toString();
-                oos.writeObject(ans+"\n");
-            }
+            oos.writeObject(result);
         }
 
         catch (IOException e) {
@@ -179,35 +176,26 @@ public class Simulator {
 
     public static void main(String [] args) {
         try {
-            for(int i=0; i<50; i++) {
-                Gson gson = new Gson();
-//                String fileName = args[0];
-                String fileName="simulation.json";
-                JsonParser jsonParser = new JsonParser();
-                JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
-                int numOfThreads = gson.fromJson(jsonObject.get("threads"), int.class);
+            Gson gson = new Gson();
+            String fileName = args[0];
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
+            int numOfThreads = gson.fromJson(jsonObject.get("threads"), int.class);
 
-                JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
-                initTools(toolsArray);
+            JsonArray toolsArray = ((JsonArray) jsonObject.get("tools"));
+            initTools(toolsArray);
 
-                JsonArray plansArray = ((JsonArray) jsonObject.get("plans"));
-                initPlans(plansArray);
+            JsonArray plansArray = ((JsonArray) jsonObject.get("plans"));
+            initPlans(plansArray);
 
-                JsonArray wavesArray = ((JsonArray) jsonObject.get("waves"));
-                initWaves(wavesArray);
-                System.out.print("");
+            JsonArray wavesArray = ((JsonArray) jsonObject.get("waves"));
+            initWaves(wavesArray);
+            System.out.print("");
 
-                WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
-                attachWorkStealingThreadPool(pool);
+            WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
+            attachWorkStealingThreadPool(pool);
 
-//                writeToFile(start());
-
-                ConcurrentLinkedQueue<Product> result=start();
-                for (Product product:result) {
-                    String ans=product.toString();
-                    System.out.println(ans);
-                }
-            }
+            writeToFile(start());
 
 
 
@@ -215,9 +203,9 @@ public class Simulator {
             e.printStackTrace();
         }
 
-        }
-
     }
+
+}
 
 
 

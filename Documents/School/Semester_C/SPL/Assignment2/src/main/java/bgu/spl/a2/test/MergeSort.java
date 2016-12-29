@@ -50,7 +50,6 @@ public class MergeSort extends Task<int[]> {
 					int[] ans = new int[array.length];
 					merge(mergeSortTasks.get(0).getResult().get(), mergeSortTasks.get(1).getResult().get(), ans);
 					complete(ans);
-				} else {
 				}
 			});
 		} else {
@@ -95,7 +94,6 @@ public class MergeSort extends Task<int[]> {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		for (int i = 0; i <2000; i++) {
 			WorkStealingThreadPool pool = new WorkStealingThreadPool(50);
 			int n = 400; //you may check on different number of elements if  you like
 			int[] array = new Random().ints(n).toArray();
@@ -113,8 +111,7 @@ public class MergeSort extends Task<int[]> {
 
 			l.await();
 			pool.shutdown();
-//			System.out.println(i);
-		}
+
 	}
 
 
