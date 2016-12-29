@@ -2,20 +2,23 @@ package bgu.spl.a2.sim;
 
 import bgu.spl.a2.sim.tools.Tool;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A class that represents a product produced during the simulation.
  */
-public class Product {
+public class Product implements Serializable {
 
     private final long _startId;
-    private long _finalId;
+    private AtomicLong _finalId;
     private String _name;
     private List<Product> productsNeeded;
     private boolean end=false;
+    private long add=0;
 
     /**
      * Constructor
@@ -24,7 +27,7 @@ public class Product {
      */
     public Product(long startId, String name){
         _startId = startId;
-        _finalId = startId;
+        _finalId = new AtomicLong(startId);
         _name = name;
         productsNeeded = new Vector<>();
     }
@@ -48,17 +51,14 @@ public class Product {
      * @return The product final ID as a long.
      * final ID is the ID the product received as the sum of all UseOn();
      */
-    public long getFinalId(){
-//        for(AtomicInteger i = new AtomicInteger(0);i.get()<productsNeeded.size();i.incrementAndGet()){
-//            _finalId += productsNeeded.get(i.get()).getFinalId();
-//        }
-        return _finalId;
+    public synchronized long getFinalId(){
+        return _finalId.get();
     }
 
     /**
      * @return Returns all parts of this product as a List of Products
      */
-    public List<Product> getParts(){return productsNeeded;}
+    public synchronized List<Product> getParts(){return productsNeeded;}
 
     /**
      * Add a new part to the product
@@ -68,9 +68,11 @@ public class Product {
         productsNeeded.add(p);
     }
 
-    public synchronized void setFinalId(long toAdd){
+    public void setFinalId(long toAdd){
+        if(add==0)
+            add=toAdd;
         if(!end) {
-            _finalId += toAdd;
+            _finalId.getAndAdd(add);
             end=true;
         }
     }
@@ -85,8 +87,6 @@ public class Product {
         res+="}\n";
         return res;
     }
-
-
 
 
 

@@ -18,7 +18,7 @@ public class ManufacturingTask extends Task<Product> {
     private final ManufactoringPlan plan;
     private final Vector<Task<Product>> tasks;
     private final Product mainProduct;
-    private AtomicInteger numOfToolsLeft = new AtomicInteger(0);
+    private final AtomicInteger numOfToolsLeft = new AtomicInteger(0);
 
     public ManufacturingTask(Product mainProduct, Warehouse warehouse, ManufactoringPlan plan) {
         this.mainProduct = mainProduct;
@@ -35,16 +35,15 @@ public class ManufacturingTask extends Task<Product> {
         final String[] partsNeeded = plan.getParts();
 
         if (partsNeeded.length == 0) {
-
             complete(mainProduct);
         } else {
             //defining the sub products, add them to the main product, and creating tasks for them
             for (AtomicInteger i = new AtomicInteger(0); i.get() < partsNeeded.length; i.incrementAndGet()) {
-                final long id=mainProduct.getStartId();
-                Product subProduct = new Product(id + 1, partsNeeded[i.get()]);
+                final long id=mainProduct.getStartId()+1;
+                final Product subProduct = new Product(id, partsNeeded[i.get()]);
                 mainProduct.addPart(subProduct); //add the sub part to tha current main product
                 ManufactoringPlan input = warehouse.getPlan(partsNeeded[i.get()]); // the plan of the sub-product
-                Task<Product> subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
+                ManufacturingTask subProductAssemble = new ManufacturingTask(subProduct, warehouse, input);
                 synchronized (tasks) {
                     tasks.add(subProductAssemble); // add the task to the collection so when it resolved the main
                     // product will perform the necessary action
@@ -61,11 +60,15 @@ public class ManufacturingTask extends Task<Product> {
                     for (AtomicInteger j = new AtomicInteger(0); j.get() < toolsNeeded.length; j.incrementAndGet()) {
                         Deferred<Tool> tool = warehouse.acquireTool(toolsNeeded[j.get()]);
                         tool.whenResolved(() -> {
-                            toAdd.addAndGet(tool.get().useOn(mainProduct));
-                            numOfToolsLeft.decrementAndGet();
-                            warehouse.releaseTool(tool.get());
+                            synchronized (mainProduct) {
+                                final long val = tool.get().useOn(mainProduct);
+                                toAdd.getAndAdd(val);
+                                numOfToolsLeft.decrementAndGet();
+                                warehouse.releaseTool(tool.get());
+                            }
                         });
                     }
+
                 //product is assembled
                 while(numOfToolsLeft.get()>0);
                 synchronized (mainProduct) {

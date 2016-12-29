@@ -151,12 +151,14 @@ public class WorkStealingThreadPool {
 
             Task<?> task;
             task = queues.get(id).pollFirst();
+            while(queues.get(id).contains(task)){};
             if(task==null){
                 return steal(id);
             }
             else{
                 return task;
             }
+
 
     }
 
@@ -174,7 +176,10 @@ public class WorkStealingThreadPool {
                 }
             }
             if(counter !=0){
-                return queues.get(thiefID).pollFirst();
+                Task task =queues.get(thiefID).pollFirst();
+                while(queues.get(thiefID).contains(task)){};
+                return task;
+
             }
             else{
                 victimId = (victimId+1)%numOfProcessors;

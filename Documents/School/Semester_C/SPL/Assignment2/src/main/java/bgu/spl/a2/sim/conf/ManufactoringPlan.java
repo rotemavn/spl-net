@@ -6,9 +6,9 @@ package bgu.spl.a2.sim.conf;
  **/
 public class ManufactoringPlan {
 
-    private String productName;
-    private String[] parts;
-    private String[] tools;
+    private final String productName;
+    private final String[] parts;
+    private final String[] tools;
 
 
 

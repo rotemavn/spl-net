@@ -181,7 +181,8 @@ public class Simulator {
         try {
             for(int i=0; i<50; i++) {
                 Gson gson = new Gson();
-                String fileName = args[0];
+//                String fileName = args[0];
+                String fileName="simulation.json";
                 JsonParser jsonParser = new JsonParser();
                 JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
                 int numOfThreads = gson.fromJson(jsonObject.get("threads"), int.class);
@@ -199,7 +200,13 @@ public class Simulator {
                 WorkStealingThreadPool pool = new WorkStealingThreadPool(numOfThreads);
                 attachWorkStealingThreadPool(pool);
 
-                writeToFile(start());
+//                writeToFile(start());
+
+                ConcurrentLinkedQueue<Product> result=start();
+                for (Product product:result) {
+                    String ans=product.toString();
+                    System.out.println(ans);
+                }
             }
 
 
