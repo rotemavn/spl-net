@@ -167,6 +167,7 @@ public class Simulator {
             FileOutputStream fout = new FileOutputStream("result.ser");
             ObjectOutputStream oos = new ObjectOutputStream(fout);
             oos.writeObject(result);
+            oos.close();
         }
 
         catch (IOException e) {
