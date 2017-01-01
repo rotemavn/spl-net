@@ -178,7 +178,8 @@ public class Simulator {
     public static void main(String [] args) {
         try {
             Gson gson = new Gson();
-            String fileName = args[0];
+//            String fileName = args[0];
+            String fileName ="ax1.json";
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(new FileReader(fileName));
             int numOfThreads = gson.fromJson(jsonObject.get("threads"), int.class);

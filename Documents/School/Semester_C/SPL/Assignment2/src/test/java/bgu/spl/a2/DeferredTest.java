@@ -23,8 +23,13 @@ public class DeferredTest<T> {
 
 	@Test
 	public void testGet() {
-		assertEquals(new IllegalStateException(), defer.get());
-		
+		try{
+			defer.get();
+		}
+		catch (IllegalStateException e){
+
+		}
+
 		Object o=new Object();		
 		defer.resolve(o);
 		assertEquals(o, defer.get());
